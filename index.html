@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文本字数统计工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            font-size: 2rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .main-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .input-area {
+            padding: 25px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 250px;
+            padding: 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 16px;
+            line-height: 1.8;
+            resize: vertical;
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 20px;
+            padding: 30px 25px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 20px 15px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 12px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .stat-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            padding: 0 25px 25px;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .btn-clear {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-clear:hover {
+            background: #dc2626;
+        }
+
+        .btn-copy {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-copy:hover {
+            background: #5a67d8;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            color: rgba(255,255,255,0.8);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 600px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📝 文本字数统计工具</h1>
+
+        <div class="main-card">
+            <div class="input-area">
+                <textarea id="textInput" placeholder="在此输入或粘贴你的文本..."></textarea>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value" id="totalChars">0</div>
+                    <div class="stat-label">总字符数</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="charsNoSpaces">0</div>
+                    <div class="stat-label">字符数(不含空格)</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="chineseChars">0</div>
+                    <div class="stat-label">中文字数</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="englishWords">0</div>
+                    <div class="stat-label">英文单词数</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="totalWords">0</div>
+                    <div class="stat-label">总词数</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="lines">0</div>
+                    <div class="stat-label">行数</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="paragraphs">0</div>
+                    <div class="stat-label">段落数</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="punctuation">0</div>
+                    <div class="stat-label">标点符号数</div>
+                </div>
+            </div>
+
+            <div class="buttons">
+                <button class="btn-clear" onclick="clearText()">清空内容</button>
+                <button class="btn-copy" onclick="copyText()">复制文本</button>
+            </div>
+        </div>
+
+        <div class="footer">
+            实时统计 · 支持中英文 · 无需上传 · 数据安全
+        </div>
+    </div>
+
+    <script>
+        const textInput = document.getElementById('textInput');
+
+        // 监听输入变化，实时统计
+        textInput.addEventListener('input', updateStats);
+
+        function updateStats() {
+            const text = textInput.value;
+
+            // 总字符数
+            document.getElementById('totalChars').textContent = text.length;
+
+            // 字符数(不含空格)
+            document.getElementById('charsNoSpaces').textContent = text.replace(/\s/g, '').length;
+
+            // 中文字数 (包括中文标点和全角字符)
+            const chineseMatch = text.match(/[\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff]/g);
+            document.getElementById('chineseChars').textContent = chineseMatch ? chineseMatch.length : 0;
+
+            // 英文单词数
+            const englishWords = text.match(/[a-zA-Z]+/g);
+            document.getElementById('englishWords').textContent = englishWords ? englishWords.length : 0;
+
+            // 总词数 (中文+英文单词)
+            const chineseCount = chineseMatch ? chineseMatch.length : 0;
+            const englishCount = englishWords ? englishWords.length : 0;
+            document.getElementById('totalWords').textContent = chineseCount + englishCount;
+
+            // 行数
+            const lines = text.length > 0 ? text.split('\n').length : 0;
+            document.getElementById('lines').textContent = lines;
+
+            // 段落数 (非空行)
+            const paragraphs = text.trim().split('\n').filter(line => line.trim().length > 0);
+            document.getElementById('paragraphs').textContent = text.trim().length > 0 ? paragraphs.length : 0;
+
+            // 标点符号数
+            const punctuation = text.match(/[\u3002\uff0c\uff1a\uff1b\u201c\u201d\u2018\u2019\uff01\uff1f\u3001\uff08\uff09\u300a\u300b\u3010\u3011\uff0f\uff1a\u2014\u2026\uff0f\u300c\u300d\uff01\uff1f\uff1b\uff1a\uff0c\u3002\.\,\!\?\;\:\'\"\(\)\[\]\{\}]/g);
+            document.getElementById('punctuation').textContent = punctuation ? punctuation.length : 0;
+        }
+
+        function clearText() {
+            if (textInput.value.trim() && confirm('确定要清空所有内容吗？')) {
+                textInput.value = '';
+                updateStats();
+            }
+        }
+
+        function copyText() {
+            if (textInput.value.trim()) {
+                navigator.clipboard.writeText(textInput.value).then(() => {
+                    alert('文本已复制到剪贴板！');
+                }).catch(() => {
+                    // 降级方案
+                    textInput.select();
+                    document.execCommand('copy');
+                    alert('文本已复制到剪贴板！');
+                });
+            }
+        }
+
+        // 初始化统计
+        updateStats();
+    </script>
+</body>
+</html>
