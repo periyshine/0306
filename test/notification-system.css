@@ -1,0 +1,348 @@
+/**
+ * 通知系统样式
+ * 支持动画、堆叠和多种类型
+ */
+
+/* ========== 通知容器 ========== */
+.notification-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 400px;
+    width: 100%;
+    pointer-events: none; /* 允许点击穿透到通知 */
+}
+
+/* ========== 通知基础样式 ========== */
+.notification {
+    position: relative;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05);
+    padding: 16px 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    pointer-events: auto;
+    cursor: pointer;
+    overflow: hidden;
+    transform-origin: right center;
+    backdrop-filter: blur(10px);
+    transition: box-shadow 0.2s ease;
+}
+
+.notification:hover {
+    box-shadow: 0 6px 30px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+
+/* ========== 动画状态 ========== */
+/* 进入动画 - 从右侧滑入 */
+.notification-enter {
+    animation: slideIn 300ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(120%) scale(0.9);
+        opacity: 0;
+        filter: blur(4px);
+    }
+    to {
+        transform: translateX(0) scale(1);
+        opacity: 1;
+        filter: blur(0);
+    }
+}
+
+/* 可见状态 */
+.notification-visible {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+}
+
+/* 退出动画 - 向右侧滑出 */
+.notification-exit {
+    animation: slideOut 300ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0) scale(1);
+        opacity: 1;
+        max-height: 200px;
+        margin-bottom: 12px;
+    }
+    to {
+        transform: translateX(120%) scale(0.9);
+        opacity: 0;
+        max-height: 0;
+        margin-bottom: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+}
+
+/* 进度条动画 */
+@keyframes notification-progress {
+    from {
+        width: 100%;
+    }
+    to {
+        width: 0%;
+    }
+}
+
+/* ========== 通知图标 ========== */
+.notification-icon {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 50%;
+}
+
+/* ========== 通知内容 ========== */
+.notification-content {
+    flex: 1;
+    min-width: 0; /* 防止文本溢出 */
+    padding-right: 24px; /* 为关闭按钮留出空间 */
+}
+
+.notification-title {
+    margin: 0 0 6px 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: #1a1a1a;
+    line-height: 1.3;
+}
+
+.notification-message {
+    margin: 0;
+    font-size: 14px;
+    color: #5a5a5a;
+    line-height: 1.5;
+    word-wrap: break-word;
+}
+
+/* ========== 进度条 ========== */
+.notification-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 0 0 12px 12px;
+    overflow: hidden;
+}
+
+.notification-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, rgba(0,0,0,0.2), rgba(0,0,0,0.1));
+    width: 100%;
+    animation: notification-progress linear forwards;
+}
+
+/* ========== 关闭按钮 ========== */
+.notification-close {
+    position: absolute;
+    top: 12px;
+    right: 8px;
+    width: 24px;
+    height: 24px;
+    border: none;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 6px;
+    font-size: 20px;
+    line-height: 1;
+    color: #666;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.notification-close:hover {
+    background: rgba(0, 0, 0, 0.1);
+    color: #333;
+}
+
+.notification-close:active {
+    transform: scale(0.95);
+}
+
+/* ========== 通知类型样式 ========== */
+
+/* 成功通知 - 绿色 */
+.notification-success {
+    border-left: 4px solid #10b981;
+}
+
+.notification-success .notification-icon {
+    background: #d1fae5;
+    color: #10b981;
+}
+
+.notification-success .notification-progress-bar {
+    background: linear-gradient(90deg, #10b981, #34d399);
+}
+
+/* 错误通知 - 红色 */
+.notification-error {
+    border-left: 4px solid #ef4444;
+}
+
+.notification-error .notification-icon {
+    background: #fee2e2;
+    color: #ef4444;
+}
+
+.notification-error .notification-progress-bar {
+    background: linear-gradient(90deg, #ef4444, #f87171);
+}
+
+/* 警告通知 - 橙色 */
+.notification-warning {
+    border-left: 4px solid #f59e0b;
+}
+
+.notification-warning .notification-icon {
+    background: #fef3c7;
+    color: #f59e0b;
+}
+
+.notification-warning .notification-progress-bar {
+    background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
+
+/* 信息通知 - 蓝色 */
+.notification-info {
+    border-left: 4px solid #3b82f6;
+}
+
+.notification-info .notification-icon {
+    background: #dbeafe;
+    color: #3b82f6;
+}
+
+.notification-info .notification-progress-bar {
+    background: linear-gradient(90deg, #3b82f6, #60a5fa);
+}
+
+/* ========== 优先级样式 ========== */
+
+/* 高优先级 - 强化的阴影和边框 */
+.notification[data-priority="high"] {
+    box-shadow: 0 6px 30px rgba(0, 0, 0, 0.2), 0 0 0 2px rgba(0, 0, 0, 0.1);
+}
+
+.notification[data-priority="urgent"] {
+    box-shadow: 0 8px 40px rgba(239, 68, 68, 0.3), 0 0 0 2px rgba(239, 68, 68, 0.3);
+    animation: urgentPulse 2s ease-in-out infinite;
+}
+
+@keyframes urgentPulse {
+    0%, 100% {
+        box-shadow: 0 8px 40px rgba(239, 68, 68, 0.3), 0 0 0 2px rgba(239, 68, 68, 0.3);
+    }
+    50% {
+        box-shadow: 0 8px 50px rgba(239, 68, 68, 0.5), 0 0 0 3px rgba(239, 68, 68, 0.5);
+    }
+}
+
+/* ========== 堆叠动画 ========== */
+
+/* 新通知进入时，现有通知上移 */
+.notification-container {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ========== 响应式设计 ========== */
+@media (max-width: 480px) {
+    .notification-container {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+    }
+
+    .notification {
+        padding: 14px 16px;
+    }
+
+    .notification-title {
+        font-size: 14px;
+    }
+
+    .notification-message {
+        font-size: 13px;
+    }
+}
+
+/* ========== 深色模式支持 ========== */
+@media (prefers-color-scheme: dark) {
+    .notification {
+        background: #2a2a2a;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
+    }
+
+    .notification-title {
+        color: #f0f0f0;
+    }
+
+    .notification-message {
+        color: #a0a0a0;
+    }
+
+    .notification-close {
+        background: rgba(255, 255, 255, 0.1);
+        color: #a0a0a0;
+    }
+
+    .notification-close:hover {
+        background: rgba(255, 255, 255, 0.15);
+        color: #f0f0f0;
+    }
+
+    /* 类型特定颜色适配 */
+    .notification-success .notification-icon {
+        background: rgba(16, 185, 129, 0.2);
+    }
+
+    .notification-error .notification-icon {
+        background: rgba(239, 68, 68, 0.2);
+    }
+
+    .notification-warning .notification-icon {
+        background: rgba(245, 158, 11, 0.2);
+    }
+
+    .notification-info .notification-icon {
+        background: rgba(59, 130, 246, 0.2);
+    }
+}
+
+/* ========== 无障碍增强 ========== */
+.notification:focus-visible {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+.notification[role="alert"] {
+    animation: slideIn 300ms cubic-bezier(0.4, 0, 0.2, 1), alertShake 0.5s ease-in-out;
+}
+
+@keyframes alertShake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
+    20%, 40%, 60%, 80% { transform: translateX(2px); }
+}
