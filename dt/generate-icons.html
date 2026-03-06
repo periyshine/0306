@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生成 PWA 图标</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #4A90E2;
+            text-align: center;
+        }
+        .preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin: 20px 0;
+            justify-content: center;
+        }
+        .icon-preview {
+            text-align: center;
+        }
+        .icon-preview canvas {
+            border: 2px solid #ddd;
+            border-radius: 5px;
+        }
+        .icon-preview p {
+            margin-top: 5px;
+            font-size: 14px;
+            color: #666;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background: #4A90E2;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        button:hover {
+            background: #357ABD;
+        }
+        .download-all {
+            background: #27AE60;
+        }
+        .download-all:hover {
+            background: #219A52;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗺️ 旅行地图图标生成器</h1>
+
+        <div class="preview" id="preview"></div>
+
+        <button onclick="downloadAllIcons()" class="download-all">
+            📥 下载所有图标
+        </button>
+    </div>
+
+    <script>
+        const sizes = [72, 96, 128, 144, 152, 192, 384, 512];
+        const canvases = {};
+
+        function drawIcon(size) {
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+
+            // 背景渐变
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#4A90E2');
+            gradient.addColorStop(1, '#50E3C2');
+
+            // 绘制圆角矩形背景
+            const radius = size * 0.15;
+            ctx.beginPath();
+            ctx.moveTo(radius, 0);
+            ctx.lineTo(size - radius, 0);
+            ctx.quadraticCurveTo(size, 0, size, radius);
+            ctx.lineTo(size, size - radius);
+            ctx.quadraticCurveTo(size, size, size - radius, size);
+            ctx.lineTo(radius, size);
+            ctx.quadraticCurveTo(0, size, 0, size - radius);
+            ctx.lineTo(0, radius);
+            ctx.quadraticCurveTo(0, 0, radius, 0);
+            ctx.closePath();
+
+            ctx.fillStyle = gradient;
+            ctx.fill();
+
+            // 绘制地图图标
+            const centerX = size / 2;
+            const centerY = size / 2;
+            const iconSize = size * 0.4;
+
+            ctx.fillStyle = 'white';
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = size * 0.02;
+
+            // 地图标记形状
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY - iconSize * 0.4);
+            ctx.quadraticCurveTo(
+                centerX + iconSize * 0.3,
+                centerY - iconSize * 0.4,
+                centerX + iconSize * 0.3,
+                centerY - iconSize * 0.1
+            );
+            ctx.quadraticCurveTo(
+                centerX + iconSize * 0.3,
+                centerY + iconSize * 0.3,
+                centerX,
+                centerY + iconSize * 0.4
+            );
+            ctx.quadraticCurveTo(
+                centerX - iconSize * 0.3,
+                centerY + iconSize * 0.3,
+                centerX - iconSize * 0.3,
+                centerY - iconSize * 0.1
+            );
+            ctx.quadraticCurveTo(
+                centerX - iconSize * 0.3,
+                centerY - iconSize * 0.4,
+                centerX,
+                centerY - iconSize * 0.4
+            );
+            ctx.fill();
+
+            // 内圆点
+            ctx.beginPath();
+            ctx.arc(centerX, centerY - iconSize * 0.05, iconSize * 0.15, 0, Math.PI * 2);
+            ctx.fillStyle = '#FF6B6B';
+            ctx.fill();
+
+            return canvas;
+        }
+
+        function init() {
+            const preview = document.getElementById('preview');
+
+            sizes.forEach(size => {
+                const canvas = drawIcon(size);
+                canvases[size] = canvas;
+
+                const wrapper = document.createElement('div');
+                wrapper.className = 'icon-preview';
+
+                const label = document.createElement('p');
+                label.textContent = `${size}×${size}`;
+
+                wrapper.appendChild(canvas);
+                wrapper.appendChild(label);
+                preview.appendChild(wrapper);
+            });
+        }
+
+        function downloadCanvas(canvas, filename) {
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        function downloadAllIcons() {
+            sizes.forEach(size => {
+                downloadCanvas(canvases[size], `icon-${size}.png`);
+            });
+        }
+
+        // 初始化
+        init();
+    </script>
+</body>
+</html>

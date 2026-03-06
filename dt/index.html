@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="交互式旅行规划地图应用 - 规划你的旅行路线">
+    <meta name="theme-color" content="#4A90E2">
+    <title>旅行规划地图</title>
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="icon-192.png">
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+          crossorigin=""/>
+
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div id="loading-overlay">
+        <div class="spinner"></div>
+        <p>加载地图中...</p>
+    </div>
+
+    <!-- Header -->
+    <header>
+        <h1><i class="fas fa-map-marked-alt"></i> 旅行规划地图</h1>
+        <div class="header-actions">
+            <button id="btn-weather" class="btn-header" title="天气图层">
+                <i class="fas fa-cloud-sun"></i>
+                <span id="weather-status">天气</span>
+            </button>
+            <button id="btn-offline" class="btn-header" title="离线状态">
+                <i class="fas fa-wifi"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <!-- Search Section -->
+            <section class="search-section">
+                <div class="search-box">
+                    <input type="text" id="search-input" placeholder="搜索地点..." />
+                    <button id="search-btn"><i class="fas fa-search"></i></button>
+                </div>
+                <div id="search-results" class="search-results"></div>
+            </section>
+
+            <!-- Trip Builder -->
+            <section class="trip-builder">
+                <h2><i class="fas fa-route"></i> 行程规划</h2>
+                <div id="waypoints-list" class="waypoints-list">
+                    <div class="empty-state">
+                        <i class="fas fa-map-pin"></i>
+                        <p>在地图上点击添加地点<br>或搜索地点添加到行程</p>
+                    </div>
+                </div>
+                <div class="trip-actions">
+                    <button id="btn-calculate" class="btn-primary" disabled>
+                        <i class="fas fa-calculator"></i> 计算距离
+                    </button>
+                    <button id="btn-clear" class="btn-secondary">
+                        <i class="fas fa-trash"></i> 清空行程
+                    </button>
+                    <button id="btn-export" class="btn-secondary">
+                        <i class="fas fa-download"></i> 导出行程
+                    </button>
+                </div>
+            </section>
+
+            <!-- Distance Info -->
+            <section class="distance-info" id="distance-info" style="display: none;">
+                <h3><i class="fas fa-road"></i> 行程信息</h3>
+                <div class="distance-stats">
+                    <div class="stat">
+                        <i class="fas fa-ruler"></i>
+                        <span class="stat-label">总距离</span>
+                        <span class="stat-value" id="total-distance">0 km</span>
+                    </div>
+                    <div class="stat">
+                        <i class="fas fa-clock"></i>
+                        <span class="stat-label">预计时间</span>
+                        <span class="stat-value" id="estimated-time">0 小时</span>
+                    </div>
+                    <div class="stat">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span class="stat-label">站点数量</span>
+                        <span class="stat-value" id="stop-count">0</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Weather Widget -->
+            <section class="weather-widget" id="weather-widget" style="display: none;">
+                <h3><i class="fas fa-cloud-sun"></i> 目的地天气</h3>
+                <div id="weather-info" class="weather-info"></div>
+            </section>
+        </aside>
+
+        <!-- Map Container -->
+        <main class="map-container">
+            <div id="map"></div>
+
+            <!-- Map Controls -->
+            <div class="map-controls">
+                <button id="btn-current-location" class="map-control-btn" title="我的位置">
+                    <i class="fas fa-crosshairs"></i>
+                </button>
+                <button id="btn-toggle-layer" class="map-control-btn" title="切换图层">
+                    <i class="fas fa-layer-group"></i>
+                </button>
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin=""></script>
+
+    <!-- App Script -->
+    <script src="app.js"></script>
+
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('service-worker.js')
+                    .then(registration => {
+                        console.log('ServiceWorker 注册成功:', registration);
+                    })
+                    .catch(error => {
+                        console.log('ServiceWorker 注册失败:', error);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+{
+  "name": "interactive-travel-map",
+  "version": "1.0.0",
+  "description": "交互式旅行规划地图应用 - 使用 Leaflet + OpenStreetMap",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx http-server -p 8000 -c-1",
+    "serve": "npx http-server -p 8000 --cors -c-1",
+    "dev": "npx http-server -p 8000 --cors -c-1 -o"
+  },
+  "keywords": [
+    "travel",
+    "map",
+    "leaflet",
+    "openstreetmap",
+    "pwa",
+    "javascript"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "bugs": {
+    "url": ""
+  },
+  "homepage": ""
+}
