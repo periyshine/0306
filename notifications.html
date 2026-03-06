@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>交互式通知系统演示</title>
+    <link rel="stylesheet" href="notifications.css">
+</head>
+<body>
+    <div class="demo-container">
+        <h1>交互式通知系统演示</h1>
+        <div class="controls">
+            <button onclick="NotificationSystem.success('操作成功！', '您的更改已保存。', 'high')">成功通知 (高优先级)</button>
+            <button onclick="NotificationSystem.success('操作成功！', '您的更改已保存。', 'low')">成功通知 (低优先级)</button>
+            <button onclick="NotificationSystem.error('发生错误！', '无法连接到服务器，请稍后重试。', 'critical')">错误通知 (严重)</button>
+            <button onclick="NotificationSystem.error('发生警告！', '某些功能可能不可用。', 'high')">错误通知 (高优先级)</button>
+            <button onclick="NotificationSystem.info('系统消息', '您有3条未读消息。', 'medium')">信息通知 (中优先级)</button>
+            <button onclick="NotificationSystem.info('提示', '点击我可以提前关闭！', 'low')">信息通知 (低优先级)</button>
+        </div>
+        <div class="description">
+            <h2>功能特点：</h2>
+            <ul>
+                <li>✨ 从右侧滑入的流畅动画</li>
+                <li>🎨 不同类型有不同颜色（成功-绿色、错误-红色、信息-蓝色）</li>
+                <li>📦 多个通知自动堆叠，不重叠</li>
+                <li>👆 点击通知可提前关闭</li>
+                <li>⏱️ 优先级系统控制停留时间</li>
+                <li>🔔 自动关闭或手动关闭都有平滑动画</li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="notifications.js"></script>
+</body>
+</html>

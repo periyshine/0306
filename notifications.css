@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>交互式通知系统演示</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .demo-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .controls button {
+            padding: 15px 20px;
+            font-size: 14px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .controls button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .controls button:active {
+            transform: translateY(0);
+        }
+
+        .controls button:nth-child(1),
+        .controls button:nth-child(2) {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .controls button:nth-child(3),
+        .controls button:nth-child(4) {
+            background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+            color: white;
+        }
+
+        .controls button:nth-child(5),
+        .controls button:nth-child(6) {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .description {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+        }
+
+        .description h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        .description ul {
+            list-style: none;
+        }
+
+        .description li {
+            padding: 10px 0;
+            font-size: 16px;
+            color: #555;
+        }
+
+        /* ==================== 通知容器 ==================== */
+        .notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        /* ==================== 通知项 ==================== */
+        .notification {
+            position: relative;
+            margin-bottom: 15px;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+            cursor: pointer;
+            transform: translateX(120%);
+            animation: slideIn 0.4s ease forwards;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden;
+        }
+
+        .notification:hover {
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+            transform: translateX(0) scale(1.02);
+        }
+
+        .notification.removing {
+            animation: slideOut 0.4s ease forwards;
+        }
+
+        /* 进度条 */
+        .notification-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.3);
+            transform-origin: left;
+        }
+
+        .notification-progress-bar {
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            animation: progress linear forwards;
+        }
+
+        /* 关闭按钮 */
+        .notification-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 24px;
+            height: 24px;
+            border: none;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+            transition: all 0.2s ease;
+            opacity: 0;
+        }
+
+        .notification:hover .notification-close {
+            opacity: 1;
+        }
+
+        .notification-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(90deg);
+        }
+
+        /* 通知标题 */
+        .notification-title {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 5px;
+            padding-right: 30px;
+        }
+
+        /* 通知消息 */
+        .notification-message {
+            font-size: 14px;
+            line-height: 1.5;
+            opacity: 0.95;
+        }
+
+        /* ==================== 通知类型 ==================== */
+        .notification.success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .notification.error {
+            background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+            color: white;
+        }
+
+        .notification.info {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        /* ==================== 优先级指示器 ==================== */
+        .notification-priority {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .notification-priority.critical {
+            background: #ff0000;
+            box-shadow: 0 0 10px #ff0000;
+            animation: priorityPulse 1s ease infinite;
+        }
+
+        .notification-priority.high {
+            background: #ffa500;
+            box-shadow: 0 0 8px #ffa500;
+        }
+
+        .notification-priority.medium {
+            background: #ffff00;
+            box-shadow: 0 0 6px #ffff00;
+        }
+
+        .notification-priority.low {
+            background: #00ff00;
+            box-shadow: 0 0 4px #00ff00;
+        }
+
+        /* 通知带优先级指示器时需要调整内边距 */
+        .notification.has-priority {
+            padding-left: 30px;
+        }
+
+        .notification.has-priority .notification-title,
+        .notification.has-priority .notification-message {
+            padding-right: 0;
+        }
+
+        /* ==================== 动画 ==================== */
+        @keyframes slideIn {
+            from {
+                transform: translateX(120%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(120%);
+                opacity: 0;
+            }
+        }
+
+        @keyframes progress {
+            from {
+                width: 100%;
+            }
+            to {
+                width: 0%;
+            }
+        }
+
+        @keyframes priorityPulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.3);
+                opacity: 0.8;
+            }
+        }
+
+        /* ==================== 响应式设计 ==================== */
+        @media (max-width: 480px) {
+            .notification-container {
+                left: 10px;
+                right: 10px;
+                max-width: none;
+            }
+
+            .demo-container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .controls {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <h1>交互式通知系统演示</h1>
+        <div class="controls">
+            <button onclick="NotificationSystem.success('操作成功！', '您的更改已保存。', 'high')">成功通知 (高优先级)</button>
+            <button onclick="NotificationSystem.success('操作成功！', '您的更改已保存。', 'low')">成功通知 (低优先级)</button>
+            <button onclick="NotificationSystem.error('发生错误！', '无法连接到服务器，请稍后重试。', 'critical')">错误通知 (严重)</button>
+            <button onclick="NotificationSystem.error('发生警告！', '某些功能可能不可用。', 'high')">错误通知 (高优先级)</button>
+            <button onclick="NotificationSystem.info('系统消息', '您有3条未读消息。', 'medium')">信息通知 (中优先级)</button>
+            <button onclick="NotificationSystem.info('提示', '点击我可以提前关闭！', 'low')">信息通知 (低优先级)</button>
+        </div>
+        <div class="description">
+            <h2>功能特点：</h2>
+            <ul>
+                <li>✨ 从右侧滑入的流畅动画</li>
+                <li>🎨 不同类型有不同颜色（成功-绿色、错误-红色、信息-蓝色）</li>
+                <li>📦 多个通知自动堆叠，不重叠</li>
+                <li>👆 点击通知可提前关闭</li>
+                <li>⏱️ 优先级系统控制停留时间</li>
+                <li>🔔 自动关闭或手动关闭都有平滑动画</li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="notifications.js"></script>
+</body>
+</html>
