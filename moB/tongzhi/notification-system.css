@@ -1,0 +1,347 @@
+/**
+ * 通知系统样式
+ */
+
+/* ==================== 容器样式 ==================== */
+.notification-container {
+  position: fixed;
+  z-index: 9999;
+  max-width: 400px;
+  width: 100%;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* 右上角 */
+.notification-container--top-right {
+  top: 20px;
+  right: 20px;
+}
+
+/* 左上角 */
+.notification-container--top-left {
+  top: 20px;
+  left: 20px;
+}
+
+/* 右下角 */
+.notification-container--bottom-right {
+  bottom: 20px;
+  right: 20px;
+}
+
+/* 左下角 */
+.notification-container--bottom-left {
+  bottom: 20px;
+  left: 20px;
+}
+
+/* ==================== 通知卡片 ==================== */
+.notification {
+  position: relative;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  pointer-events: auto;
+  cursor: pointer;
+  overflow: hidden;
+  transform-origin: center;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+/* 进场动画 - 从右侧滑入 */
+.notification--entering {
+  animation: slideInRight 0.3s ease-out forwards;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* 退场动画 - 滑出到右侧 */
+.notification--leaving {
+  animation: slideOutRight 0.3s ease-in forwards;
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(120%);
+    opacity: 0;
+  }
+}
+
+/* 悬停效果 */
+.notification:hover {
+  transform: translateX(-5px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* ==================== 图标 ==================== */
+.notification__icon {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-weight: bold;
+  font-size: 14px;
+  transition: transform 0.2s ease;
+}
+
+.notification:hover .notification__icon {
+  transform: scale(1.1);
+}
+
+/* 成功图标 */
+.notification--success .notification__icon {
+  background: #10b981;
+  color: white;
+}
+
+/* 错误图标 */
+.notification--error .notification__icon {
+  background: #ef4444;
+  color: white;
+}
+
+/* 信息图标 */
+.notification--info .notification__icon {
+  background: #3b82f6;
+  color: white;
+}
+
+/* 警告图标 */
+.notification--warning .notification__icon {
+  background: #f59e0b;
+  color: white;
+}
+
+/* ==================== 内容区域 ==================== */
+.notification__content {
+  flex: 1;
+  min-width: 0; /* 防止文本溢出 */
+}
+
+.notification__title {
+  margin: 0 0 4px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+  line-height: 1.4;
+}
+
+.notification__message {
+  margin: 0;
+  font-size: 13px;
+  color: #6b7280;
+  line-height: 1.5;
+  word-wrap: break-word;
+}
+
+/* 不同类型的通知标题颜色 */
+.notification--success .notification__title {
+  color: #065f46;
+}
+
+.notification--error .notification__title {
+  color: #991b1b;
+}
+
+.notification--info .notification__title {
+  color: #1e40af;
+}
+
+.notification--warning .notification__title {
+  color: #92400e;
+}
+
+/* ==================== 关闭按钮 ==================== */
+.notification__close {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: transparent;
+  color: #9ca3af;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.notification__close:hover {
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
+.notification__close:active {
+  transform: scale(0.9);
+}
+
+/* ==================== 进度条 ==================== */
+.notification__progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 3px;
+  background: currentColor;
+  opacity: 0.3;
+}
+
+.notification--success .notification__progress {
+  background: #10b981;
+}
+
+.notification--error .notification__progress {
+  background: #ef4444;
+}
+
+.notification--info .notification__progress {
+  background: #3b82f6;
+}
+
+.notification--warning .notification__progress {
+  background: #f59e0b;
+}
+
+/* ==================== 优先级样式 ==================== */
+
+/* 低优先级 */
+.notification--priority-low {
+  border-left: 3px solid #d1d5db;
+}
+
+/* 普通优先级 */
+.notification--priority-normal {
+  border-left: 3px solid #9ca3af;
+}
+
+/* 高优先级 */
+.notification--priority-high {
+  border-left: 3px solid #f59e0b;
+}
+
+/* 严重优先级 - 添加脉冲动画 */
+.notification--priority-critical {
+  border-left: 4px solid #ef4444;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  50% {
+    box-shadow: 0 4px 20px rgba(239, 68, 68, 0.4);
+  }
+}
+
+/* ==================== 响应式设计 ==================== */
+@media (max-width: 480px) {
+  .notification-container {
+    max-width: calc(100vw - 40px);
+  }
+
+  .notification-container--top-right,
+  .notification-container--top-left,
+  .notification-container--bottom-right,
+  .notification-container--bottom-left {
+    left: 20px;
+    right: 20px;
+  }
+
+  .notification {
+    padding: 12px;
+  }
+}
+
+/* ==================== 堆叠动画 ==================== */
+/* 当多个通知时，新通知会推动旧通知向上 */
+.notification-container > .notification {
+  animation: notificationEnter 0.3s ease-out;
+}
+
+@keyframes notificationEnter {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ==================== 深色模式支持 ==================== */
+@media (prefers-color-scheme: dark) {
+  .notification {
+    background: #1f2937;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  .notification__title {
+    color: #f9fafb;
+  }
+
+  .notification__message {
+    color: #d1d5db;
+  }
+
+  .notification__close {
+    color: #6b7280;
+  }
+
+  .notification__close:hover {
+    background: #374151;
+    color: #d1d5db;
+  }
+
+  /* 不同类型的标题颜色适配深色 */
+  .notification--success .notification__title {
+    color: #6ee7b7;
+  }
+
+  .notification--error .notification__title {
+    color: #fca5a5;
+  }
+
+  .notification--info .notification__title {
+    color: #93c5fd;
+  }
+
+  .notification--warning .notification__title {
+    color: #fcd34d;
+  }
+}
+
+/* ==================== 打印样式 ==================== */
+@media print {
+  .notification-container {
+    display: none;
+  }
+}

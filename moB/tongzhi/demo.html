@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>交互式通知系统演示</title>
+  <link rel="stylesheet" href="notification-system.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      color: white;
+      text-align: center;
+      margin-bottom: 10px;
+      font-size: 2.5rem;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .subtitle {
+      color: rgba(255, 255, 255, 0.9);
+      text-align: center;
+      margin-bottom: 40px;
+      font-size: 1.1rem;
+    }
+
+    .demo-section {
+      background: white;
+      border-radius: 16px;
+      padding: 30px;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    .demo-section h2 {
+      color: #1f2937;
+      margin-bottom: 20px;
+      font-size: 1.5rem;
+      border-bottom: 2px solid #e5e7eb;
+      padding-bottom: 10px;
+    }
+
+    .button-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    /* 成功按钮 */
+    .btn-success {
+      background: #10b981;
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #059669;
+    }
+
+    /* 错误按钮 */
+    .btn-error {
+      background: #ef4444;
+      color: white;
+    }
+
+    .btn-error:hover {
+      background: #dc2626;
+    }
+
+    /* 信息按钮 */
+    .btn-info {
+      background: #3b82f6;
+      color: white;
+    }
+
+    .btn-info:hover {
+      background: #2563eb;
+    }
+
+    /* 警告按钮 */
+    .btn-warning {
+      background: #f59e0b;
+      color: white;
+    }
+
+    .btn-warning:hover {
+      background: #d97706;
+    }
+
+    /* 严重按钮 */
+    .btn-critical {
+      background: #7f1d1d;
+      color: white;
+    }
+
+    .btn-critical:hover {
+      background: #991b1b;
+    }
+
+    /* 默认按钮 */
+    .btn-default {
+      background: #6b7280;
+      color: white;
+    }
+
+    .btn-default:hover {
+      background: #4b5563;
+    }
+
+    .features-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .features-list li {
+      padding: 10px 0;
+      border-bottom: 1px solid #e5e7eb;
+      color: #4b5563;
+      display: flex;
+      align-items: center;
+    }
+
+    .features-list li:before {
+      content: "✓";
+      color: #10b981;
+      font-weight: bold;
+      margin-right: 10px;
+      font-size: 18px;
+    }
+
+    .features-list li:last-child {
+      border-bottom: none;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .input-group input {
+      flex: 1;
+      padding: 12px;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: border-color 0.3s ease;
+    }
+
+    .input-group input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .control-panel {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .position-button {
+      padding: 10px;
+      background: #f3f4f6;
+      border: 2px solid transparent;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 13px;
+    }
+
+    .position-button:hover {
+      background: #e5e7eb;
+    }
+
+    .position-button.active {
+      background: #667eea;
+      color: white;
+      border-color: #4f46e5;
+    }
+
+    .demo-code {
+      background: #1f2937;
+      color: #f9fafb;
+      padding: 20px;
+      border-radius: 8px;
+      font-family: 'Monaco', 'Courier New', monospace;
+      font-size: 13px;
+      overflow-x: auto;
+      margin-top: 15px;
+    }
+
+    .demo-code .comment {
+      color: #6b7280;
+    }
+
+    .demo-code .keyword {
+      color: #c084fc;
+    }
+
+    .demo-code .string {
+      color: #34d399;
+    }
+
+    .demo-code .function {
+      color: #60a5fa;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔔 交互式通知系统</h1>
+    <p class="subtitle">现代化的动画通知，支持堆叠、优先级和多种类型</p>
+
+    <!-- 基础通知 -->
+    <div class="demo-section">
+      <h2>基础通知类型</h2>
+      <div class="button-grid">
+        <button class="btn btn-success" onclick="showSuccess()">成功通知</button>
+        <button class="btn btn-error" onclick="showError()">错误通知</button>
+        <button class="btn btn-info" onclick="showInfo()">信息通知</button>
+        <button class="btn btn-warning" onclick="showWarning()">警告通知</button>
+        <button class="btn btn-critical" onclick="showCritical()">严重错误</button>
+      </div>
+    </div>
+
+    <!-- 优先级测试 -->
+    <div class="demo-section">
+      <h2>优先级系统</h2>
+      <p style="color: #6b7280; margin-bottom: 15px;">
+        高优先级通知会在屏幕上停留更长时间
+      </p>
+      <div class="button-grid">
+        <button class="btn btn-default" onclick="notify.show({ type: 'info', message: '低优先级通知（2秒）', priority: 'low' })">
+          低优先级
+        </button>
+        <button class="btn btn-info" onclick="notify.show({ type: 'info', message: '普通优先级通知（4秒）', priority: 'normal' })">
+          普通优先级
+        </button>
+        <button class="btn btn-warning" onclick="notify.show({ type: 'warning', message: '高优先级通知（6秒）', priority: 'high' })">
+          高优先级
+        </button>
+        <button class="btn btn-critical" onclick="notify.show({ type: 'error', message: '严重优先级通知（8秒）', priority: 'critical' })">
+          严重优先级
+        </button>
+      </div>
+    </div>
+
+    <!-- 多通知堆叠 -->
+    <div class="demo-section">
+      <h2>多通知堆叠</h2>
+      <p style="color: #6b7280; margin-bottom: 15px;">
+        点击按钮快速发送多个通知，观察堆叠效果
+      </p>
+      <div class="button-grid">
+        <button class="btn btn-info" onclick="showMultiple()">显示5个通知</button>
+        <button class="btn btn-warning" onclick="showMixed()">混合类型通知</button>
+        <button class="btn btn-error" onclick="spamNotifications()">快速发送10个</button>
+        <button class="btn btn-default" onclick="notify.clearAll()">清除所有通知</button>
+      </div>
+    </div>
+
+    <!-- 自定义消息 -->
+    <div class="demo-section">
+      <h2>自定义消息</h2>
+      <div class="input-group">
+        <input type="text" id="customMessage" placeholder="输入自定义消息..." value="这是一条自定义通知消息！">
+        <button class="btn btn-info" onclick="showCustomMessage()">发送</button>
+      </div>
+    </div>
+
+    <!-- 位置控制 -->
+    <div class="demo-section">
+      <h2>通知位置</h2>
+      <p style="color: #6b7280; margin-bottom: 15px;">
+        选择通知显示在屏幕的哪个位置
+      </p>
+      <div class="control-panel">
+        <button class="position-button active" onclick="setPosition('top-right', this)">右上角</button>
+        <button class="position-button" onclick="setPosition('top-left', this)">左上角</button>
+        <button class="position-button" onclick="setPosition('bottom-right', this)">右下角</button>
+        <button class="position-button" onclick="setPosition('bottom-left', this)">左下角</button>
+      </div>
+    </div>
+
+    <!-- 功能特性 -->
+    <div class="demo-section">
+      <h2>系统特性</h2>
+      <ul class="features-list">
+        <li>从右侧滑入的流畅动画</li>
+        <li>自动堆叠，不会重叠</li>
+        <li>按通知类型显示不同颜色（成功-绿色、错误-红色、信息-蓝色、警告-橙色）</li>
+        <li>点击通知可手动关闭</li>
+        <li>优先级系统控制显示时长</li>
+        <li>鼠标悬停时暂停自动关闭</li>
+        <li>进度条显示剩余时间</li>
+        <li>响应式设计，支持移动端</li>
+        <li>深色模式自动适配</li>
+        <li>可自定义显示位置</li>
+      </ul>
+    </div>
+
+    <!-- 使用示例代码 -->
+    <div class="demo-section">
+      <h2>使用示例</h2>
+      <div class="demo-code">
+<span class="comment">// 快捷方法</span>
+notify.<span class="function">success</span>(<span class="string">'操作成功！'</span>);
+notify.<span class="function">error</span>(<span class="string">'发生错误！'</span>);
+notify.<span class="function">info</span>(<span class="string">'这是一条信息'</span>);
+notify.<span class="function">warning</span>(<span class="string">'请注意！'</span>);
+notify.<span class="function">critical</span>(<span class="string">'系统崩溃！'</span>);
+
+<span class="comment">// 完整配置</span>
+notify.<span class="function">show</span>({
+  <span class="keyword">type</span>: <span class="string">'success'</span>,
+  <span class="keyword">title</span>: <span class="string">'完成'</span>,
+  <span class="keyword">message</span>: <span class="string">'任务已成功完成'</span>,
+  <span class="keyword">priority</span>: <span class="string">'high'</span>,
+  <span class="keyword">duration</span>: <span class="number">5000</span>
+});
+      </div>
+    </div>
+  </div>
+
+  <script src="notification-system.js"></script>
+  <script>
+    // 基础通知演示函数
+    function showSuccess() {
+      notify.success('操作成功完成！');
+    }
+
+    function showError() {
+      notify.error('操作失败，请重试');
+    }
+
+    function showInfo() {
+      notify.info('这是一条信息通知');
+    }
+
+    function showWarning() {
+      notify.warning('请注意这个警告');
+    }
+
+    function showCritical() {
+      notify.critical('系统发生严重错误！', {
+        message: '数据库连接失败，请联系管理员'
+      });
+    }
+
+    // 多通知堆叠演示
+    function showMultiple() {
+      const messages = [
+        '通知 1：第一条消息',
+        '通知 2：第二条消息',
+        '通知 3：第三条消息',
+        '通知 4：第四条消息',
+        '通知 5：第五条消息'
+      ];
+
+      messages.forEach((msg, index) => {
+        setTimeout(() => {
+          notify.info(msg);
+        }, index * 300);
+      });
+    }
+
+    // 混合类型通知
+    function showMixed() {
+      const notifications = [
+        { type: 'success', message: '文件上传成功', fn: 'success' },
+        { type: 'info', message: '正在处理...', fn: 'info' },
+        { type: 'warning', message: '警告：内存使用率高', fn: 'warning' },
+        { type: 'error', message: '部分数据同步失败', fn: 'error' }
+      ];
+
+      notifications.forEach((notif, index) => {
+        setTimeout(() => {
+          notify[notif.fn](notif.message);
+        }, index * 400);
+      });
+    }
+
+    // 快速发送多个通知
+    function spamNotifications() {
+      for (let i = 1; i <= 10; i++) {
+        setTimeout(() => {
+          const types = ['success', 'error', 'info', 'warning'];
+          const type = types[Math.floor(Math.random() * types.length)];
+          notify.show({
+            type: type,
+            message: `快速通知 #${i}`
+          });
+        }, i * 150);
+      }
+    }
+
+    // 自定义消息
+    function showCustomMessage() {
+      const message = document.getElementById('customMessage').value;
+      if (message.trim()) {
+        notify.show({
+          type: 'info',
+          message: message,
+          title: '自定义消息'
+        });
+        document.getElementById('customMessage').value = '';
+      }
+    }
+
+    // 设置位置
+    function setPosition(position, button) {
+      notify.configure({ position: position });
+
+      // 更新按钮状态
+      document.querySelectorAll('.position-button').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      button.classList.add('active');
+
+      // 显示通知确认位置更改
+      notify.info(`通知位置已更改为：${getPositionName(position)}`);
+    }
+
+    function getPositionName(position) {
+      const names = {
+        'top-right': '右上角',
+        'top-left': '左上角',
+        'bottom-right': '右下角',
+        'bottom-left': '左下角'
+      };
+      return names[position] || position;
+    }
+
+    // 回车发送自定义消息
+    document.getElementById('customMessage').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        showCustomMessage();
+      }
+    });
+
+    // 页面加载时显示欢迎消息
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        notify.show({
+          type: 'success',
+          title: '欢迎使用',
+          message: '通知系统演示页面已加载完成！',
+          priority: 'normal'
+        });
+      }, 500);
+    });
+  </script>
+</body>
+</html>
