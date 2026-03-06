@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>黄金矿工</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to bottom, #87CEEB 0%, #87CEEB 15%, #8B4513 15%, #654321 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        #gameContainer {
+            background: linear-gradient(to bottom, #87CEEB 0%, #87CEEB 15%, #8B4513 15%, #654321 100%);
+            border: 4px solid #333;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        #menuScreen {
+            position: absolute;
+            width: 800px;
+            height: 600px;
+            background: linear-gradient(to bottom, #87CEEB 0%, #87CEEB 15%, #8B4513 15%, #654321 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            border-radius: 10px;
+        }
+
+        #menuScreen h1 {
+            font-size: 48px;
+            color: #FFD700;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+            margin-bottom: 20px;
+        }
+
+        #menuScreen h2 {
+            font-size: 24px;
+            color: #FFF;
+            margin-bottom: 40px;
+        }
+
+        .menuButton {
+            padding: 15px 40px;
+            font-size: 20px;
+            background: linear-gradient(to bottom, #FFD700, #FFA500);
+            border: 3px solid #8B4513;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 10px;
+            color: #333;
+            font-weight: bold;
+            transition: all 0.3s;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .menuButton:hover {
+            transform: scale(1.05);
+            background: linear-gradient(to bottom, #FFA500, #FF8C00);
+        }
+
+        #gameCanvas {
+            display: block;
+            border-radius: 10px;
+        }
+
+        .scorePanel {
+            position: absolute;
+            top: 10px;
+            padding: 10px 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #FFD700;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        #player1Score {
+            left: 10px;
+        }
+
+        #player2Score {
+            right: 10px;
+        }
+
+        #instructions {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: #FFF;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        #victoryScreen {
+            position: absolute;
+            width: 800px;
+            height: 600px;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+            border-radius: 10px;
+        }
+
+        #victoryScreen h1 {
+            font-size: 48px;
+            background: linear-gradient(to right, #FFD700, #FFA500, #FF8C00, #FFD700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: none;
+            animation: glow 2s ease-in-out infinite alternate;
+            margin-bottom: 20px;
+        }
+
+        @keyframes glow {
+            from {
+                text-shadow: 0 0 10px #FFD700, 0 0 20px #FFD700;
+            }
+            to {
+                text-shadow: 0 0 20px #FFD700, 0 0 30px #FFA500, 0 0 40px #FF8C00;
+            }
+        }
+
+        #victoryScreen p {
+            color: #FFF;
+            font-size: 24px;
+            margin-bottom: 30px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .firework {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            animation: firework 1s ease-out forwards;
+        }
+
+        @keyframes firework {
+            0% {
+                transform: scale(0);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(3);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <div id="menuScreen">
+            <h1>💎 黄金矿工 💎</h1>
+            <h2>目标：达到800分获胜！</h2>
+            <button class="menuButton" onclick="startGame(1)">单人模式</button>
+            <button class="menuButton" onclick="startGame(2)">双人模式</button>
+        </div>
+        <div id="player1Score" class="scorePanel hidden">玩家A: 0分</div>
+        <div id="player2Score" class="scorePanel hidden">玩家B: 0分</div>
+        <div id="instructions" class="hidden">
+            <span id="inst1">玩家A: 按 <b>S</b> 下钩</span>
+            <span id="inst2" style="display:none; margin-left: 20px;"> | 玩家B: 按 <b>↓</b> 下钩</span>
+        </div>
+        <div id="victoryScreen">
+            <h1>🎉 恭喜胜利！🎉</h1>
+            <p id="victoryMessage">你达到了800分！</p>
+            <button class="menuButton" onclick="resetGame()">重新开始</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let gameMode = 1; // 1 = 单人, 2 = 双人
+        let gameRunning = false;
+        let player1Score = 0;
+        let player2Score = 0;
+        let items = [];
+        let players = [];
+        let explosions = [];
+
+        const GROUND_LEVEL = 80;
+        const CANVAS_WIDTH = 800;
+        const CANVAS_HEIGHT = 600;
+        const VICTORY_SCORE = 800;
+
+        class Player {
+            constructor(x, name, keyLabel) {
+                this.x = x;
+                this.y = 40;
+                this.name = name;
+                this.keyLabel = keyLabel;
+                this.hookAngle = 0;
+                this.hookAngleDir = 1;
+                this.hookAngleSpeed = 0.03;
+                this.hookLength = 50;
+                this.maxHookLength = 700;
+                this.hookSpeed = 0;
+                this.hookState = 'swinging'; // swinging, extending, retracting
+                this.hookedItem = null;
+                this.hookRetractSpeed = 5;
+            }
+
+            update() {
+                if (this.hookState === 'swinging') {
+                    this.hookAngle += this.hookAngleSpeed * this.hookAngleDir;
+                    if (this.hookAngle > Math.PI / 2.5 || this.hookAngle < -Math.PI / 2.5) {
+                        this.hookAngleDir *= -1;
+                    }
+                } else if (this.hookState === 'extending') {
+                    const effectiveSpeed = this.getHookSpeed();
+                    this.hookLength += effectiveSpeed;
+
+                    // Check collision with items
+                    if (!this.hookedItem) {
+                        for (let item of items) {
+                            if (item.caught) continue;
+                            const hookEndX = this.x + Math.sin(this.hookAngle) * this.hookLength;
+                            const hookEndY = this.y + Math.cos(this.hookAngle) * this.hookLength;
+                            if (this.checkCollision(hookEndX, hookEndY, item)) {
+                                this.catchItem(item);
+                                break;
+                            }
+                        }
+                    }
+
+                    // Check boundaries
+                    if (this.hookLength >= this.maxHookLength) {
+                        this.hookState = 'retracting';
+                    }
+
+                    const hookEndX = this.x + Math.sin(this.hookAngle) * this.hookLength;
+                    const hookEndY = this.y + Math.cos(this.hookAngle) * this.hookLength;
+
+                    if (hookEndX < 0 || hookEndX > CANVAS_WIDTH || hookEndY > CANVAS_HEIGHT) {
+                        this.hookState = 'retracting';
+                    }
+                } else if (this.hookState === 'retracting') {
+                    const speed = this.hookedItem ? this.hookRetractSpeed : 15;
+                    this.hookLength -= speed;
+
+                    if (this.hookedItem) {
+                        this.hookedItem.x = this.x + Math.sin(this.hookAngle) * (this.hookLength + this.hookedItem.radius);
+                        this.hookedItem.y = this.y + Math.cos(this.hookAngle) * (this.hookLength + this.hookedItem.radius);
+                    }
+
+                    if (this.hookLength <= 50) {
+                        if (this.hookedItem) {
+                            this.collectItem();
+                        }
+                        this.hookState = 'swinging';
+                        this.hookLength = 50;
+                    }
+                }
+            }
+
+            getHookSpeed() {
+                if (this.hookedItem) {
+                    return Math.max(2, 8 - this.hookedItem.weight * 2);
+                }
+                return 8;
+            }
+
+            checkCollision(hookX, hookY, item) {
+                const dx = hookX - item.x;
+                const dy = hookY - item.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                return distance < item.radius;
+            }
+
+            catchItem(item) {
+                this.hookedItem = item;
+                item.caught = true;
+                this.hookRetractSpeed = Math.max(1, 5 - item.weight * 0.5);
+
+                // Handle炸弹爆炸
+                if (item.type === 'bomb') {
+                    this.createExplosion(item.x, item.y);
+                    setTimeout(() => {
+                        this.hookState = 'retracting';
+                        this.hookRetractSpeed = 15;
+                    }, 300);
+                }
+            }
+
+            createExplosion(x, y) {
+                explosions.push({
+                    x: x,
+                    y: y,
+                    radius: 0,
+                    maxRadius: 80,
+                    alpha: 1
+                });
+            }
+
+            collectItem() {
+                const item = this.hookedItem;
+                if (this.name === '玩家A') {
+                    player1Score += item.value;
+                } else {
+                    player2Score += item.value;
+                }
+                updateScoreDisplay();
+
+                // Remove item from array
+                const index = items.indexOf(item);
+                if (index > -1) {
+                    items.splice(index, 1);
+                }
+
+                this.hookedItem = null;
+
+                // Check victory condition
+                if (player1Score >= VICTORY_SCORE || player2Score >= VICTORY_SCORE || (gameMode === 1 && player1Score >= VICTORY_SCORE)) {
+                    setTimeout(showVictory, 500);
+                }
+            }
+
+            draw() {
+                // Draw player
+                ctx.fillStyle = this.name === '玩家A' ? '#FF6B6B' : '#4ECDC4';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y - 20, 15, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Draw hook line
+                const hookEndX = this.x + Math.sin(this.hookAngle) * this.hookLength;
+                const hookEndY = this.y + Math.cos(this.hookAngle) * this.hookLength;
+
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y);
+                ctx.lineTo(hookEndX, hookEndY);
+                ctx.stroke();
+
+                // Draw hook
+                ctx.fillStyle = '#666';
+                ctx.beginPath();
+                ctx.arc(hookEndX, hookEndY, 5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Draw hook shape
+                ctx.strokeStyle = '#666';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(hookEndX, hookEndY, 10, 0, Math.PI);
+                ctx.stroke();
+            }
+        }
+
+        class Item {
+            constructor(type, x, y, size, value, weight) {
+                this.type = type;
+                this.x = x;
+                this.y = y;
+                this.size = size;
+                this.value = value;
+                this.weight = weight;
+                this.radius = size;
+                this.caught = false;
+                this.speed = 0;
+                this.direction = 1;
+
+                if (type === 'pig') {
+                    this.speed = 0.5 + Math.random() * 0.3;
+                    this.direction = Math.random() > 0.5 ? 1 : -1;
+                }
+            }
+
+            update() {
+                if (this.caught) return;
+
+                if (this.type === 'pig') {
+                    this.x += this.speed * this.direction;
+                    if (this.x < 50 || this.x > CANVAS_WIDTH - 50) {
+                        this.direction *= -1;
+                    }
+                }
+            }
+
+            draw() {
+                if (this.caught && !this.type === 'bomb') return;
+
+                ctx.save();
+                ctx.translate(this.x, this.y);
+
+                switch(this.type) {
+                    case 'gold':
+                        this.drawGold();
+                        break;
+                    case 'stone':
+                        this.drawStone();
+                        break;
+                    case 'diamond':
+                        this.drawDiamond();
+                        break;
+                    case 'bomb':
+                        this.drawBomb();
+                        break;
+                    case 'pig':
+                        this.drawPig();
+                        break;
+                }
+
+                ctx.restore();
+            }
+
+            drawGold() {
+                const gradient = ctx.createRadialGradient(-this.radius * 0.3, -this.radius * 0.3, 0, 0, 0, this.radius);
+                gradient.addColorStop(0, '#FFD700');
+                gradient.addColorStop(0.5, '#FFA500');
+                gradient.addColorStop(1, '#FF8C00');
+
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.strokeStyle = '#DAA520';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Highlight
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.beginPath();
+                ctx.arc(-this.radius * 0.3, -this.radius * 0.3, this.radius * 0.4, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            drawStone() {
+                ctx.fillStyle = '#696969';
+                ctx.beginPath();
+
+                // Irregular shape
+                ctx.moveTo(-this.radius * 0.8, -this.radius * 0.3);
+                ctx.lineTo(this.radius * 0.6, -this.radius * 0.9);
+                ctx.lineTo(this.radius * 0.9, 0);
+                ctx.lineTo(this.radius * 0.5, this.radius * 0.85);
+                ctx.lineTo(-this.radius * 0.7, this.radius * 0.7);
+                ctx.lineTo(-this.radius * 0.9, -this.radius * 0.1);
+                ctx.closePath();
+
+                ctx.fill();
+                ctx.strokeStyle = '#555';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Texture
+                ctx.fillStyle = '#555';
+                ctx.beginPath();
+                ctx.arc(-this.radius * 0.2, -this.radius * 0.2, this.radius * 0.2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            drawDiamond() {
+                ctx.fillStyle = '#B9F2FF';
+                ctx.beginPath();
+                ctx.moveTo(0, -this.radius);
+                ctx.lineTo(this.radius, 0);
+                ctx.lineTo(0, this.radius);
+                ctx.lineTo(-this.radius, 0);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.strokeStyle = '#87CEEB';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Inner shine
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                ctx.beginPath();
+                ctx.moveTo(0, -this.radius * 0.5);
+                ctx.lineTo(this.radius * 0.5, 0);
+                ctx.lineTo(0, this.radius * 0.5);
+                ctx.lineTo(-this.radius * 0.5, 0);
+                ctx.closePath();
+                ctx.fill();
+            }
+
+            drawBomb() {
+                ctx.fillStyle = '#333';
+                ctx.beginPath();
+                ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Fuse
+                ctx.strokeStyle = '#8B4513';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(0, -this.radius);
+                ctx.quadraticCurveTo(this.radius * 0.3, -this.radius * 1.2, this.radius * 0.5, -this.radius * 1.5);
+                ctx.stroke();
+
+                // Spark
+                if (Math.random() > 0.5) {
+                    ctx.fillStyle = '#FF6600';
+                    ctx.beginPath();
+                    ctx.arc(this.radius * 0.5, -this.radius * 1.5, 5, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                // Highlight
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+                ctx.beginPath();
+                ctx.arc(-this.radius * 0.3, -this.radius * 0.3, this.radius * 0.4, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Skull symbol
+                ctx.fillStyle = '#FFF';
+                ctx.font = 'bold 12px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('💀', 0, 2);
+            }
+
+            drawPig() {
+                // Body
+                ctx.fillStyle = '#FFB6C1';
+                ctx.beginPath();
+                ctx.ellipse(0, 0, this.radius, this.radius * 0.8, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Head
+                ctx.beginPath();
+                ctx.ellipse(this.direction * this.radius * 0.5, -this.radius * 0.3, this.radius * 0.5, this.radius * 0.4, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Snout
+                ctx.fillStyle = '#FF69B4';
+                ctx.beginPath();
+                ctx.ellipse(this.direction * this.radius * 0.7, -this.radius * 0.25, this.radius * 0.2, this.radius * 0.15, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Eyes
+                ctx.fillStyle = '#000';
+                ctx.beginPath();
+                ctx.arc(this.direction * this.radius * 0.5, -this.radius * 0.4, 3, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Legs
+                ctx.fillStyle = '#FFB6C1';
+                const legOffset = Math.sin(Date.now() / 100) * 3;
+                ctx.fillRect(-this.radius * 0.4, this.radius * 0.5, 8, 12 + legOffset);
+                ctx.fillRect(this.radius * 0.3, this.radius * 0.5, 8, 12 - legOffset);
+            }
+        }
+
+        function initItems() {
+            items = [];
+
+            // Diamonds (至少3个，价值800，最轻)
+            for (let i = 0; i < 4; i++) {
+                const x = 100 + Math.random() * 600;
+                const y = 200 + Math.random() * 300;
+                items.push(new Item('diamond', x, y, 15, 800, 0.5));
+            }
+
+            // Large gold
+            for (let i = 0; i < 3; i++) {
+                const x = 100 + Math.random() * 600;
+                const y = 250 + Math.random() * 250;
+                items.push(new Item('gold', x, y, 35, 500, 3));
+            }
+
+            // Medium gold
+            for (let i = 0; i < 4; i++) {
+                const x = 100 + Math.random() * 600;
+                const y = 200 + Math.random() * 300;
+                items.push(new Item('gold', x, y, 25, 250, 2));
+            }
+
+            // Small gold
+            for (let i = 0; i < 5; i++) {
+                const x = 100 + Math.random() * 600;
+                const y = 180 + Math.random() * 350;
+                items.push(new Item('gold', x, y, 15, 100, 1));
+            }
+
+            // Large stones (最重，价值低)
+            for (let i = 0; i < 3; i++) {
+                const x = 100 + Math.random() * 600;
+                const y = 300 + Math.random() * 200;
+                items.push(new Item('stone', x, y, 40, 20, 5));
+            }
+
+            // Medium stones
+            for (let i = 0; i < 4; i++) {
+                const x = 100 + Math.random() * 600;
+                const y = 250 + Math.random() * 300;
+                items.push(new Item('stone', x, y, 30, 11, 3.5));
+            }
+
+            // Small stones
+            for (let i = 0; i < 4; i++) {
+                const x = 100 + Math.random() * 600;
+                const y = 200 + Math.random() * 350;
+                items.push(new Item('stone', x, y, 20, 5, 2));
+            }
+
+            // Bombs (价值2，爆炸效果)
+            for (let i = 0; i < 3; i++) {
+                const x = 150 + Math.random() * 500;
+                const y = 250 + Math.random() * 300;
+                items.push(new Item('bomb', x, y, 20, 2, 1));
+            }
+
+            // Pigs (价值3，会移动，最轻)
+            for (let i = 0; i < 2; i++) {
+                const x = 100 + Math.random() * 600;
+                const y = 350 + Math.random() * 150;
+                items.push(new Item('pig', x, y, 20, 3, 0.5));
+            }
+        }
+
+        function drawBackground() {
+            // Sky
+            ctx.fillStyle = '#87CEEB';
+            ctx.fillRect(0, 0, CANVAS_WIDTH, GROUND_LEVEL);
+
+            // Ground
+            const groundGradient = ctx.createLinearGradient(0, GROUND_LEVEL, 0, CANVAS_HEIGHT);
+            groundGradient.addColorStop(0, '#8B4513');
+            groundGradient.addColorStop(1, '#654321');
+            ctx.fillStyle = groundGradient;
+            ctx.fillRect(0, GROUND_LEVEL, CANVAS_WIDTH, CANVAS_HEIGHT - GROUND_LEVEL);
+
+            // Ground line
+            ctx.strokeStyle = '#5D3A1A';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(0, GROUND_LEVEL);
+            ctx.lineTo(CANVAS_WIDTH, GROUND_LEVEL);
+            ctx.stroke();
+
+            // Draw text
+            ctx.fillStyle = '#FFF';
+            ctx.font = 'bold 24px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('💎 目标: ' + VICTORY_SCORE + ' 分 💎', CANVAS_WIDTH / 2, 30);
+        }
+
+        function drawExplosions() {
+            for (let i = explosions.length - 1; i >= 0; i--) {
+                const exp = explosions[i];
+
+                const gradient = ctx.createRadialGradient(exp.x, exp.y, 0, exp.x, exp.y, exp.radius);
+                gradient.addColorStop(0, `rgba(255, 200, 0, ${exp.alpha})`);
+                gradient.addColorStop(0.3, `rgba(255, 100, 0, ${exp.alpha})`);
+                gradient.addColorStop(0.6, `rgba(255, 50, 0, ${exp.alpha * 0.8})`);
+                gradient.addColorStop(1, `rgba(255, 0, 0, 0)`);
+
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(exp.x, exp.y, exp.radius, 0, Math.PI * 2);
+                ctx.fill();
+
+                exp.radius += 5;
+                exp.alpha -= 0.05;
+
+                if (exp.alpha <= 0) {
+                    explosions.splice(i, 1);
+                }
+            }
+        }
+
+        function updateScoreDisplay() {
+            document.getElementById('player1Score').textContent = `玩家A: ${player1Score}分`;
+            if (gameMode === 2) {
+                document.getElementById('player2Score').textContent = `玩家B: ${player2Score}分`;
+            }
+        }
+
+        function showVictory() {
+            gameRunning = false;
+            const victoryScreen = document.getElementById('victoryScreen');
+            const victoryMessage = document.getElementById('victoryMessage');
+
+            let message = '';
+            if (gameMode === 1) {
+                message = `玩家A达到${player1Score}分，游戏胜利！`;
+            } else {
+                if (player1Score >= VICTORY_SCORE && player2Score >= VICTORY_SCORE) {
+                    message = `两位玩家都达到了目标！平局！`;
+                } else if (player1Score >= VICTORY_SCORE) {
+                    message = `玩家A以${player1Score}分获胜！`;
+                } else {
+                    message = `玩家B以${player2Score}分获胜！`;
+                }
+            }
+
+            victoryMessage.textContent = message;
+            victoryScreen.style.display = 'flex';
+
+            // Create fireworks
+            createFireworks();
+        }
+
+        function createFireworks() {
+            const colors = ['#FF6B6B', '#4ECDC4', '#FFD93D', '#6BCF7F', '#FF8C00'];
+            const gameContainer = document.getElementById('gameContainer');
+
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const firework = document.createElement('div');
+                    firework.className = 'firework';
+                    firework.style.left = Math.random() * 800 + 'px';
+                    firework.style.top = Math.random() * 600 + 'px';
+                    firework.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    gameContainer.appendChild(firework);
+
+                    setTimeout(() => {
+                        firework.remove();
+                    }, 1000);
+                }, i * 100);
+            }
+        }
+
+        function gameLoop() {
+            if (!gameRunning) return;
+
+            ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+            drawBackground();
+
+            // Update and draw items
+            for (let item of items) {
+                item.update();
+                item.draw();
+            }
+
+            // Update and draw players
+            for (let player of players) {
+                player.update();
+                player.draw();
+            }
+
+            drawExplosions();
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        function startGame(mode) {
+            gameMode = mode;
+            player1Score = 0;
+            player2Score = 0;
+            gameRunning = true;
+            explosions = [];
+
+            document.getElementById('menuScreen').style.display = 'none';
+            document.getElementById('victoryScreen').style.display = 'none';
+            document.getElementById('player1Score').classList.remove('hidden');
+            document.getElementById('instructions').classList.remove('hidden');
+
+            if (mode === 2) {
+                document.getElementById('player2Score').classList.remove('hidden');
+                document.getElementById('inst2').style.display = 'inline';
+                players = [
+                    new Player(200, '玩家A', 'S'),
+                    new Player(600, '玩家B', '↓')
+                ];
+            } else {
+                document.getElementById('player2Score').classList.add('hidden');
+                document.getElementById('inst2').style.display = 'none';
+                players = [
+                    new Player(400, '玩家A', 'S')
+                ];
+            }
+
+            initItems();
+            updateScoreDisplay();
+            gameLoop();
+        }
+
+        function resetGame() {
+            document.getElementById('victoryScreen').style.display = 'none';
+            document.getElementById('menuScreen').style.display = 'flex';
+            gameRunning = false;
+            player1Score = 0;
+            player2Score = 0;
+
+            // Clear any remaining fireworks
+            const fireworks = document.querySelectorAll('.firework');
+            fireworks.forEach(fw => fw.remove());
+        }
+
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            if (!gameRunning) return;
+
+            // Player A - S key
+            if (e.key === 's' || e.key === 'S') {
+                if (players[0].hookState === 'swinging') {
+                    players[0].hookState = 'extending';
+                }
+                e.preventDefault();
+            }
+
+            // Player B - Down arrow (only in 2 player mode)
+            if (gameMode === 2 && (e.key === 'ArrowDown' || e.key === 'Down')) {
+                if (players[1].hookState === 'swinging') {
+                    players[1].hookState = 'extending';
+                }
+                e.preventDefault();
+            }
+        });
+
+        // Initialize
+        drawBackground();
+    </script>
+</body>
+</html>
