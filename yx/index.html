@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>音效合成工具</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎵 音效合成工具</h1>
+            <p class="subtitle">音频剪辑 · 多轨合成 · 音效处理</p>
+        </header>
+
+        <!-- 文件上传区域 -->
+        <section class="upload-section">
+            <div class="upload-area" id="uploadArea">
+                <input type="file" id="audioInput" accept="audio/*" multiple hidden>
+                <div class="upload-icon">📁</div>
+                <p>点击或拖拽音频文件到此处</p>
+                <p class="upload-hint">支持 WAV, MP3, OGG, FLAC 等格式</p>
+            </div>
+            <div class="file-list" id="fileList"></div>
+        </section>
+
+        <!-- 主波形区域 -->
+        <section class="waveform-section">
+            <div class="track-container" id="trackContainer">
+                <!-- 轨道将动态添加 -->
+            </div>
+            <div class="timeline">
+                <div class="time-marker" id="timeMarker">00:00.000</div>
+            </div>
+        </section>
+
+        <!-- 播放控制 -->
+        <section class="controls-section">
+            <div class="playback-controls">
+                <button class="btn btn-primary" id="playBtn">
+                    <span class="icon">▶</span> 播放
+                </button>
+                <button class="btn" id="pauseBtn">
+                    <span class="icon">⏸</span> 暂停
+                </button>
+                <button class="btn" id="stopBtn">
+                    <span class="icon">⏹</span> 停止
+                </button>
+                <div class="time-display">
+                    <span id="currentTime">00:00.000</span> / <span id="totalTime">00:00.000</span>
+                </div>
+            </div>
+
+            <!-- 编辑工具 -->
+            <div class="edit-tools">
+                <button class="btn btn-tool" id="cutBtn" title="剪切选区">
+                    <span class="icon">✂</span> 剪切
+                </button>
+                <button class="btn btn-tool" id="copyBtn" title="复制选区">
+                    <span class="icon">📋</span> 复制
+                </button>
+                <button class="btn btn-tool" id="pasteBtn" title="粘贴">
+                    <span class="icon">📄</span> 粘贴
+                </button>
+                <button class="btn btn-tool" id="deleteBtn" title="删除选区">
+                    <span class="icon">🗑</span> 删除
+                </button>
+                <button class="btn btn-tool" id="splitBtn" title="分割音频">
+                    <span class="icon">🔪</span> 分割
+                </button>
+            </div>
+        </section>
+
+        <!-- 音效处理面板 -->
+        <section class="effects-section">
+            <h3>音效处理</h3>
+            <div class="effects-grid">
+                <!-- 音量控制 -->
+                <div class="effect-panel">
+                    <h4>音量</h4>
+                    <div class="control-group">
+                        <label>增益: <span id="gainValue">100</span>%</label>
+                        <input type="range" id="gainSlider" min="0" max="200" value="100">
+                    </div>
+                </div>
+
+                <!-- 淡入淡出 -->
+                <div class="effect-panel">
+                    <h4>淡入淡出</h4>
+                    <div class="control-group">
+                        <label>淡入: <span id="fadeInValue">0</span>秒</label>
+                        <input type="range" id="fadeInSlider" min="0" max="5" step="0.1" value="0">
+                    </div>
+                    <div class="control-group">
+                        <label>淡出: <span id="fadeOutValue">0</span>秒</label>
+                        <input type="range" id="fadeOutSlider" min="0" max="5" step="0.1" value="0">
+                    </div>
+                    <button class="btn btn-small" id="applyFadeBtn">应用</button>
+                </div>
+
+                <!-- 音频效果 -->
+                <div class="effect-panel">
+                    <h4>音频效果</h4>
+                    <div class="effect-buttons">
+                        <button class="btn btn-small" id="normalizeBtn">标准化</button>
+                        <button class="btn btn-small" id="reverseBtn">反转</button>
+                        <button class="btn btn-small" id="silenceBtn">插入静音</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 选区信息和导出 -->
+        <section class="export-section">
+            <div class="selection-info">
+                <span>选区: <span id="selectionInfo">未选择</span></span>
+            </div>
+            <div class="export-controls">
+                <select id="exportFormat" class="format-select">
+                    <option value="wav">WAV (无损)</option>
+                    <option value="mp3">MP3</option>
+                    <option value="ogg">OGG</option>
+                </select>
+                <button class="btn btn-success" id="exportBtn">
+                    <span class="icon">💾</span> 导出音频
+                </button>
+            </div>
+        </section>
+
+        <!-- 状态栏 -->
+        <footer class="status-bar">
+            <span id="statusText">就绪</span>
+        </footer>
+    </div>
+
+    <script src="audio-engine.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

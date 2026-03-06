@@ -1,0 +1,417 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary-color: #3b82f6;
+    --primary-hover: #2563eb;
+    --secondary-color: #6366f1;
+    --success-color: #10b981;
+    --danger-color: #ef4444;
+    --warning-color: #f59e0b;
+    --bg-color: #0f172a;
+    --bg-secondary: #1e293b;
+    --bg-tertiary: #334155;
+    --text-color: #f1f5f9;
+    --text-muted: #94a3b8;
+    --border-color: #475569;
+    --track-waveform: #06b6d4;
+    --track-selection: rgba(59, 130, 246, 0.3);
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg-color);
+    color: var(--text-color);
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+}
+
+/* 上传区域 */
+.upload-section {
+    margin-bottom: 30px;
+}
+
+.upload-area {
+    background: var(--bg-secondary);
+    border: 2px dashed var(--border-color);
+    border-radius: 12px;
+    padding: 40px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.upload-area:hover {
+    border-color: var(--primary-color);
+    background: var(--bg-tertiary);
+}
+
+.upload-area.dragover {
+    border-color: var(--primary-color);
+    background: var(--bg-tertiary);
+    transform: scale(1.02);
+}
+
+.upload-icon {
+    font-size: 3rem;
+    margin-bottom: 16px;
+}
+
+.upload-area p {
+    margin-bottom: 8px;
+    font-size: 1.1rem;
+}
+
+.upload-hint {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.file-list {
+    margin-top: 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.file-item {
+    background: var(--bg-secondary);
+    padding: 12px 20px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.file-item:hover {
+    background: var(--bg-tertiary);
+}
+
+.file-item.active {
+    background: var(--primary-color);
+}
+
+.file-remove {
+    color: var(--danger-color);
+    cursor: pointer;
+    font-size: 1.2rem;
+}
+
+/* 波形区域 */
+.waveform-section {
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    overflow-x: auto;
+}
+
+.track-container {
+    position: relative;
+    min-height: 300px;
+}
+
+.track {
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    margin-bottom: 16px;
+    overflow: hidden;
+    position: relative;
+}
+
+.track-header {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.track-name {
+    flex: 1;
+    font-weight: 500;
+    margin-right: 20px;
+}
+
+.track-controls {
+    display: flex;
+    gap: 8px;
+}
+
+.track-controls input[type="range"] {
+    width: 80px;
+}
+
+.track-controls label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.waveform-canvas {
+    width: 100%;
+    height: 120px;
+    cursor: crosshair;
+    position: relative;
+}
+
+.selection-region {
+    position: absolute;
+    background: var(--track-selection);
+    pointer-events: none;
+    border-left: 2px solid var(--primary-color);
+    border-right: 2px solid var(--primary-color);
+}
+
+.playhead {
+    position: absolute;
+    width: 2px;
+    background: var(--danger-color);
+    top: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.timeline {
+    position: relative;
+    height: 30px;
+    background: var(--bg-tertiary);
+    border-top: 1px solid var(--border-color);
+    margin-top: 10px;
+    border-radius: 4px;
+}
+
+.time-marker {
+    position: absolute;
+    padding: 4px 8px;
+    background: var(--primary-color);
+    border-radius: 4px;
+    font-size: 0.8rem;
+    transform: translateX(-50%);
+}
+
+/* 控制按钮 */
+.controls-section {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.playback-controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding: 16px;
+    background: var(--bg-secondary);
+    border-radius: 12px;
+}
+
+.edit-tools {
+    display: flex;
+    gap: 10px;
+    padding: 16px;
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    align-items: center;
+}
+
+.btn {
+    background: var(--bg-tertiary);
+    color: var(--text-color);
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn:hover {
+    background: var(--bg-color);
+    transform: translateY(-2px);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+.btn-primary {
+    background: var(--primary-color);
+}
+
+.btn-primary:hover {
+    background: var(--primary-hover);
+}
+
+.btn-success {
+    background: var(--success-color);
+}
+
+.btn-success:hover {
+    background: #059669;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.icon {
+    font-size: 1.1rem;
+}
+
+.time-display {
+    margin-left: 20px;
+    font-family: monospace;
+    font-size: 1.1rem;
+    color: var(--text-muted);
+}
+
+/* 音效面板 */
+.effects-section {
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+}
+
+.effects-section h3 {
+    margin-bottom: 20px;
+    font-size: 1.3rem;
+}
+
+.effects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.effect-panel {
+    background: var(--bg-tertiary);
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.effect-panel h4 {
+    margin-bottom: 16px;
+    font-size: 1rem;
+    color: var(--text-muted);
+}
+
+.control-group {
+    margin-bottom: 16px;
+}
+
+.control-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.control-group input[type="range"] {
+    width: 100%;
+    accent-color: var(--primary-color);
+    cursor: pointer;
+}
+
+.effect-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.btn-small {
+    padding: 8px 16px;
+    font-size: 0.85rem;
+}
+
+/* 导出区域 */
+.export-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.selection-info {
+    color: var(--text-muted);
+}
+
+.export-controls {
+    display: flex;
+    gap: 10px;
+}
+
+.format-select {
+    background: var(--bg-secondary);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    padding: 12px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.95rem;
+}
+
+/* 状态栏 */
+.status-bar {
+    background: var(--bg-secondary);
+    padding: 12px 20px;
+    border-radius: 8px;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+    .controls-section {
+        grid-template-columns: 1fr;
+    }
+
+    .export-section {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    header h1 {
+        font-size: 1.8rem;
+    }
+
+    .playback-controls,
+    .edit-tools {
+        flex-wrap: wrap;
+    }
+}
