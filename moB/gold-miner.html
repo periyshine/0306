@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>黄金矿工</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        #gameContainer {
+            position: relative;
+            width: 1200px;
+            height: 800px;
+            background: linear-gradient(180deg, #87CEEB 0%, #87CEEB 15%, #8B4513 15%, #654321 100%);
+            border: 4px solid #FFD700;
+            border-radius: 10px;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+            overflow: hidden;
+        }
+
+        #startScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        #startScreen h1 {
+            color: #FFD700;
+            font-size: 72px;
+            margin-bottom: 20px;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.8);
+        }
+
+        #startScreen h2 {
+            color: #FFA500;
+            font-size: 36px;
+            margin-bottom: 40px;
+        }
+
+        .modeButton {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            color: #1a1a2e;
+            border: none;
+            padding: 20px 60px;
+            font-size: 28px;
+            font-weight: bold;
+            margin: 15px;
+            cursor: pointer;
+            border-radius: 15px;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .modeButton:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.6);
+        }
+
+        #gameCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .minerals-container {
+            position: absolute;
+            top: 120px;
+            left: 0;
+            width: 100%;
+            height: calc(100% - 120px);
+            pointer-events: none;
+        }
+
+        .mineral {
+            position: absolute;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            color: white;
+            text-shadow: 1px 1px 2px black;
+            transition: transform 0.1s;
+        }
+
+        .gold-small {
+            width: 40px;
+            height: 40px;
+            background: radial-gradient(circle, #FFD700, #FFA500);
+            border: 2px solid #FF8C00;
+        }
+
+        .gold-medium {
+            width: 60px;
+            height: 60px;
+            background: radial-gradient(circle, #FFD700, #FFA500);
+            border: 3px solid #FF8C00;
+        }
+
+        .gold-large {
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle, #FFD700, #FFA500);
+            border: 4px solid #FF8C00;
+        }
+
+        .stone-small {
+            width: 45px;
+            height: 45px;
+            background: radial-gradient(circle, #808080, #606060);
+            border: 2px solid #505050;
+        }
+
+        .stone-medium {
+            width: 65px;
+            height: 65px;
+            background: radial-gradient(circle, #808080, #606060);
+            border: 3px solid #505050;
+        }
+
+        .stone-large {
+            width: 85px;
+            height: 85px;
+            background: radial-gradient(circle, #808080, #606060);
+            border: 4px solid #505050;
+        }
+
+        .diamond {
+            width: 35px;
+            height: 35px;
+            background: radial-gradient(circle, #00BFFF, #0080FF);
+            border: 2px solid #0060CC;
+            box-shadow: 0 0 15px rgba(0, 191, 255, 0.8);
+            animation: diamondGlow 2s infinite;
+        }
+
+        @keyframes diamondGlow {
+            0%, 100% { box-shadow: 0 0 15px rgba(0, 191, 255, 0.8); }
+            50% { box-shadow: 0 0 25px rgba(0, 191, 255, 1); }
+        }
+
+        .bomb {
+            width: 40px;
+            height: 40px;
+            background: radial-gradient(circle, #333, #111);
+            border: 2px solid #666;
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .bomb::after {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 8px;
+            background: #FF0000;
+        }
+
+        .bomb::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 6px;
+            height: 6px;
+            background: #FF4500;
+            border-radius: 50%;
+        }
+
+        .pig {
+            width: 50px;
+            height: 40px;
+            background: #FFB6C1;
+            border: 2px solid #FF69B4;
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .pig::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: -8px;
+            transform: translateY(-50%);
+            width: 8px;
+            height: 8px;
+            background: #FFB6C1;
+            border: 1px solid #FF69B4;
+            border-radius: 50%;
+        }
+
+        .pig::before {
+            content: '';
+            position: absolute;
+            top: 12px;
+            left: 8px;
+            width: 6px;
+            height: 6px;
+            background: black;
+            border-radius: 50%;
+        }
+
+        .explosion {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, #FF4500 0%, transparent 70%);
+            border-radius: 50%;
+            animation: explode 0.3s ease-out forwards;
+        }
+
+        @keyframes explode {
+            0% { transform: scale(0); opacity: 1; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+
+        .hook {
+            position: absolute;
+            top: 100px;
+            transform-origin: top center;
+            pointer-events: none;
+        }
+
+        .hook-rope {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 3px;
+            background: #8B4513;
+            transform-origin: top center;
+        }
+
+        .hook-head {
+            position: absolute;
+            width: 30px;
+            height: 20px;
+            background: #C0C0C0;
+            border: 2px solid #808080;
+            border-radius: 0 0 50% 50%;
+        }
+
+        .hook-head::before,
+        .hook-head::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            width: 3px;
+            height: 10px;
+            background: #C0C0C0;
+            border: 1px solid #808080;
+        }
+
+        .hook-head::before {
+            left: 2px;
+            transform: rotate(20deg);
+        }
+
+        .hook-head::after {
+            right: 2px;
+            transform: rotate(-20deg);
+        }
+
+        #playerA-hook {
+            left: 300px;
+        }
+
+        #playerB-hook {
+            left: 900px;
+        }
+
+        #scoreBoard {
+            position: absolute;
+            top: 10px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            font-size: 24px;
+            font-weight: bold;
+            color: #FFD700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        }
+
+        .score-box {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: 2px solid #FFD700;
+        }
+
+        .victory-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 215, 0, 0.3);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            animation: victoryPulse 1s infinite;
+        }
+
+        @keyframes victoryPulse {
+            0%, 100% { background: rgba(255, 215, 0, 0.3); }
+            50% { background: rgba(255, 215, 0, 0.5); }
+        }
+
+        .victory-text {
+            font-size: 80px;
+            color: #FFD700;
+            text-shadow: 5px 5px 10px rgba(0, 0, 0, 0.8);
+            animation: victoryText 2s infinite;
+        }
+
+        @keyframes victoryText {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .victory-subtext {
+            font-size: 36px;
+            color: #FFF;
+            margin-top: 20px;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.8);
+        }
+
+        .player-label {
+            position: absolute;
+            top: 60px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #FFD700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        }
+
+        #playerA-label {
+            left: 250px;
+        }
+
+        #playerB-label {
+            left: 850px;
+        }
+
+        .player-indicator {
+            position: absolute;
+            top: 100px;
+            width: 100px;
+            height: 20px;
+            background: #FFD700;
+            border-radius: 10px;
+        }
+
+        #playerA-indicator {
+            left: 250px;
+        }
+
+        #playerB-indicator {
+            left: 850px;
+        }
+
+        .instructions {
+            position: absolute;
+            bottom: 10px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            color: #FFD700;
+            font-size: 16px;
+            text-shadow: 1px 1px 2px black;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <!-- 开始界面 -->
+        <div id="startScreen">
+            <h1>黄金矿工</h1>
+            <h2>选择游戏模式</h2>
+            <button class="modeButton" onclick="startGame('single')">单人模式</button>
+            <button class="modeButton" onclick="startGame('double')">双人模式</button>
+        </div>
+
+        <!-- 计分板 -->
+        <div id="scoreBoard" style="display: none;">
+            <div class="score-box" id="scoreA">玩家A: 0</div>
+            <div class="score-box" id="scoreB" style="display: none;">玩家B: 0</div>
+        </div>
+
+        <!-- 玩家标签 -->
+        <div class="player-label" id="playerA-label" style="display: none;">玩家A (S键)</div>
+        <div class="player-label" id="playerB-label" style="display: none;">玩家B (↓键)</div>
+
+        <!-- 钩子 -->
+        <div class="hook" id="playerA-hook" style="display: none;">
+            <div class="hook-rope" id="hookA-rope"></div>
+            <div class="hook-head" id="hookA-head"></div>
+        </div>
+        <div class="hook" id="playerB-hook" style="display: none;">
+            <div class="hook-rope" id="hookB-rope"></div>
+            <div class="hook-head" id="hookB-head"></div>
+        </div>
+
+        <!-- 矿物容器 -->
+        <div class="minerals-container" id="mineralsContainer"></div>
+
+        <!-- 胜利弹窗 -->
+        <div class="victory-overlay" id="victoryOverlay">
+            <div class="victory-text🏆 胜利 🏆</div>
+            <div class="victory-subtext">恭喜你达到800分！</div>
+            <button class="modeButton" onclick="location.reload()" style="margin-top: 40px;">再玩一次</button>
+        </div>
+
+        <!-- 操作提示 -->
+        <div class="instructions" id="instructions" style="display: none;">
+            玩家A: 按S键放钩 | 玩家B: 按↓键放钩 | 目标: 800分
+        </div>
+    </div>
+
+    <script>
+        // 游戏状态
+        const gameState = {
+            mode: null,
+            scoreA: 0,
+            scoreB: 0,
+            minerals: [],
+            hooks: {
+                playerA: {
+                    angle: 90,
+                    swinging: true,
+                    extending: false,
+                    retracting: false,
+                    direction: 1,
+                    length: 0,
+                    maxLength: 800,
+                    speed: 8,
+                    x: 300,
+                    y: 100,
+                    caughtMineral: null,
+                    retractSpeed: 0
+                },
+                playerB: {
+                    angle: 90,
+                    swinging: true,
+                    extending: false,
+                    retracting: false,
+                    direction: 1,
+                    length: 0,
+                    maxLength: 800,
+                    speed: 8,
+                    x: 900,
+                    y: 100,
+                    caughtMineral: null,
+                    retractSpeed: 0
+                }
+            },
+            gameLoop: null,
+            targetScore: 800
+        };
+
+        // 物品属性配置
+        const mineralConfig = {
+            'gold-small': { value: 100, weight: 1, size: 40 },
+            'gold-medium': { value: 250, weight: 3, size: 60 },
+            'gold-large': { value: 500, weight: 5, size: 80 },
+            'stone-small': { value: 10, weight: 2, size: 45 },
+            'stone-medium': { value: 20, weight: 4, size: 65 },
+            'stone-large': { value: 30, weight: 6, size: 85 },
+            'diamond': { value: 800, weight: 0.2, size: 35 },
+            'bomb': { value: 2, weight: 0.5, size: 40 },
+            'pig': { value: 3, weight: 0.3, size: 50 }
+        };
+
+        // 开始游戏
+        function startGame(mode) {
+            gameState.mode = mode;
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('scoreBoard').style.display = 'flex';
+            document.getElementById('instructions').style.display = 'block';
+
+            if (mode === 'single') {
+                document.getElementById('scoreA').textContent = '得分: 0';
+                document.getElementById('playerA-label').textContent = '按S键放钩';
+                document.getElementById('playerA-label').style.display = 'block';
+                document.getElementById('playerA-hook').style.display = 'block';
+            } else {
+                document.getElementById('scoreA').textContent = '玩家A: 0';
+                document.getElementById('scoreB').style.display = 'block';
+                document.getElementById('playerA-label').style.display = 'block';
+                document.getElementById('playerB-label').style.display = 'block';
+                document.getElementById('playerA-hook').style.display = 'block';
+                document.getElementById('playerB-hook').style.display = 'block';
+            }
+
+            initMinerals();
+            startGameLoop();
+        }
+
+        // 初始化矿物
+        function initMinerals() {
+            const container = document.getElementById('mineralsContainer');
+            const containerRect = container.getBoundingClientRect();
+
+            // 确保至少有3个钻石
+            const selectedPositions = [];
+            for (let i = 0; i < 3; i++) {
+                const pos = getRandomPosition(selectedPositions, containerRect);
+                selectedPositions.push(pos);
+                createMineral('diamond', pos.x, pos.y);
+            }
+
+            // 添加其他矿物
+            const minerals = [
+                { type: 'gold-large', count: 2 },
+                { type: 'gold-medium', count: 3 },
+                { type: 'gold-small', count: 4 },
+                { type: 'stone-large', count: 2 },
+                { type: 'stone-medium', count: 3 },
+                { type: 'stone-small', count: 3 },
+                { type: 'bomb', count: 4 },
+                { type: 'pig', count: 2 }
+            ];
+
+            minerals.forEach(config => {
+                for (let i = 0; i < config.count; i++) {
+                    const pos = getRandomPosition(selectedPositions, containerRect);
+                    selectedPositions.push(pos);
+                    createMineral(config.type, pos.x, pos.y);
+                }
+            });
+        }
+
+        // 获取随机位置
+        function getRandomPosition(existingPositions, containerRect) {
+            let maxAttempts = 100;
+            let attempts = 0;
+            let pos;
+
+            do {
+                pos = {
+                    x: Math.random() * (containerRect.width - 100) + 50,
+                    y: Math.random() * (containerRect.height - 100) + 50
+                };
+                attempts++;
+            } while (attempts < maxAttempts && !isValidPosition(pos, existingPositions));
+
+            return pos;
+        }
+
+        // 验证位置是否有效（避免重叠）
+        function isValidPosition(pos, existingPositions) {
+            return !existingPositions.some(existing => {
+                const dx = pos.x - existing.x;
+                const dy = pos.y - existing.y;
+                return Math.sqrt(dx * dx + dy * dy) < 100;
+            });
+        }
+
+        // 创建矿物元素
+        function createMineral(type, x, y) {
+            const mineral = document.createElement('div');
+            mineral.className = `mineral ${type}`;
+            mineral.style.left = x + 'px';
+            mineral.style.top = y + 'px';
+            mineral.dataset.type = type;
+            mineral.dataset.x = x;
+            mineral.dataset.y = y;
+
+            const config = mineralConfig[type];
+            gameState.minerals.push({
+                element: mineral,
+                type: type,
+                x: x,
+                y: y,
+                value: config.value,
+                weight: config.weight,
+                size: config.size,
+                direction: Math.random() > 0.5 ? 1 : -1,
+                speed: type === 'pig' ? 1 + Math.random() * 0.5 : 0
+            });
+
+            document.getElementById('mineralsContainer').appendChild(mineral);
+        }
+
+        // 游戏主循环
+        function startGameLoop() {
+            gameState.gameLoop = setInterval(() => {
+                updateHooks();
+                updatePigs();
+                checkCollisions();
+            }, 16);
+        }
+
+        // 更新钩子状态
+        function updateHooks() {
+            const players = gameState.mode === 'single' ? ['playerA'] : ['playerA', 'playerB'];
+
+            players.forEach(playerId => {
+                const hook = gameState.hooks[playerId];
+                const rope = document.getElementById(`hook${playerId.charAt(6).toUpperCase()}-rope`);
+                const head = document.getElementById(`hook${playerId.charAt(6).toUpperCase()}-head`);
+
+                if (hook.swinging) {
+                    // 摆动钩子
+                    hook.angle += hook.direction * 2;
+                    if (hook.angle >= 120 || hook.angle <= 60) {
+                        hook.direction *= -1;
+                    }
+
+                    head.style.transform = `rotate(${hook.angle - 90}deg)`;
+
+                    if (hook.length > 0) {
+                        hook.length = 0;
+                        rope.style.height = '0px';
+                    }
+                } else if (hook.extending) {
+                    // 伸展钩子
+                    hook.length += hook.speed;
+                    rope.style.height = hook.length + 'px';
+
+                    // 计算钩子尖端位置
+                    const radians = hook.angle * Math.PI / 180;
+                    const tipX = hook.x + Math.cos(radians) * hook.length;
+                    const tipY = hook.y + Math.sin(radians) * hook.length;
+
+                    // 检查是否超出边界
+                    if (tipX < 0 || tipX > 1200 || tipY > 800 || hook.length >= hook.maxLength) {
+                        hook.extending = false;
+                        hook.retracting = true;
+                    }
+
+                    head.style.left = (Math.cos(radians) * hook.length) + 'px';
+                    head.style.top = hook.length + 'px';
+                    head.style.transform = `rotate(${hook.angle - 90}deg)`;
+                } else if (hook.retracting) {
+                    // 收回钩子
+                    const retractSpeed = hook.caughtMineral ?
+                        Math.max(1, 8 / hook.caughtMineral.weight) :
+                        12;
+
+                    hook.length -= retractSpeed;
+                    rope.style.height = hook.length + 'px';
+
+                    // 更新被抓取矿物的位置
+                    if (hook.caughtMineral) {
+                        const radians = hook.angle * Math.PI / 180;
+                        const tipX = hook.x + Math.cos(radians) * hook.length;
+                        const tipY = hook.y + Math.sin(radians) * hook.length;
+                        hook.caughtMineral.element.style.left = tipX + 'px';
+                        hook.caughtMineral.element.style.top = tipY + 'px';
+                    }
+
+                    head.style.left = (Math.cos(radians) * hook.length) + 'px';
+                    head.style.top = hook.length + 'px';
+                    head.style.transform = `rotate(${hook.angle - 90}deg)`;
+
+                    if (hook.length <= 0) {
+                        hook.length = 0;
+                        hook.retracting = false;
+                        hook.swinging = true;
+
+                        // 收集矿物
+                        if (hook.caughtMineral) {
+                            collectMineral(playerId, hook.caughtMineral);
+                            hook.caughtMineral = null;
+                        }
+                    }
+                }
+            });
+        }
+
+        // 更新小猪位置
+        function updatePigs() {
+            gameState.minerals.forEach(mineral => {
+                if (mineral.type === 'pig' && !mineral.caught) {
+                    mineral.x += mineral.direction * mineral.speed;
+
+                    // 边界检测
+                    if (mineral.x <= 50 || mineral.x >= 1100) {
+                        mineral.direction *= -1;
+                    }
+
+                    mineral.element.style.left = mineral.x + 'px';
+                    mineral.element.style.transform = mineral.direction > 0 ? 'scaleX(1)' : 'scaleX(-1)';
+                }
+            });
+        }
+
+        // 检测碰撞
+        function checkCollisions() {
+            const players = gameState.mode === 'single' ? ['playerA'] : ['playerA', 'playerB'];
+
+            players.forEach(playerId => {
+                const hook = gameState.hooks[playerId];
+
+                if (hook.extending && !hook.caughtMineral) {
+                    const radians = hook.angle * Math.PI / 180;
+                    const tipX = hook.x + Math.cos(radians) * hook.length;
+                    const tipY = hook.y + Math.sin(radians) * hook.length;
+
+                    // 检查与矿物的碰撞
+                    gameState.minerals.forEach((mineral, index) => {
+                        if (!mineral.caught && mineral.element.style.display !== 'none') {
+                            const dx = tipX - (mineral.x + mineral.size / 2);
+                            const dy = tipY - (mineral.y + mineral.size / 2);
+                            const distance = Math.sqrt(dx * dx + dy * dy);
+
+                            if (distance < mineral.size / 2 + 15) {
+                                hook.extending = false;
+                                hook.retracting = true;
+                                hook.caughtMineral = mineral;
+                                mineral.caught = true;
+
+                                // 如果是炸弹，创建爆炸效果
+                                if (mineral.type === 'bomb') {
+                                    createExplosion(mineral.x, mineral.y);
+                                    setTimeout(() => {
+                                        mineral.element.style.display = 'none';
+                                    }, 300);
+                                }
+                            }
+                        }
+                    });
+                }
+            });
+        }
+
+        // 创建爆炸效果
+        function createExplosion(x, y) {
+            const explosion = document.createElement('div');
+            explosion.className = 'explosion';
+            explosion.style.left = (x - 50) + 'px';
+            explosion.style.top = (y - 50) + 'px';
+            document.getElementById('mineralsContainer').appendChild(explosion);
+
+            setTimeout(() => {
+                explosion.remove();
+            }, 300);
+        }
+
+        // 收集矿物
+        function collectMineral(playerId, mineral) {
+            const scoreElement = playerId === 'playerA' ? 'scoreA' : 'scoreB';
+            let score = playerId === 'playerA' ? gameState.scoreA : gameState.scoreB;
+
+            score += mineral.value;
+
+            if (playerId === 'playerA') {
+                gameState.scoreA = score;
+                document.getElementById('scoreA').textContent = gameState.mode === 'single' ?
+                    `得分: ${score}` : `玩家A: ${score}`;
+            } else {
+                gameState.scoreB = score;
+                document.getElementById('scoreB').textContent = `玩家B: ${score}`;
+            }
+
+            // 移除矿物
+            mineral.element.remove();
+            gameState.minerals = gameState.minerals.filter(m => m !== mineral);
+
+            // 检查胜利条件
+            if (score >= gameState.targetScore) {
+                showVictory();
+            }
+        }
+
+        // 显示胜利界面
+        function showVictory() {
+            clearInterval(gameState.gameLoop);
+            document.getElementById('victoryOverlay').style.display = 'flex';
+
+            // 简单彩蛋动画
+            const overlay = document.getElementById('victoryOverlay');
+            let colors = ['rgba(255, 215, 0, 0.3)', 'rgba(255, 165, 0, 0.3)', 'rgba(255, 69, 0, 0.3)'];
+            let colorIndex = 0;
+
+            const colorInterval = setInterval(() => {
+                overlay.style.background = colors[colorIndex % colors.length];
+                colorIndex++;
+            }, 500);
+
+            setTimeout(() => clearInterval(colorInterval), 5000);
+        }
+
+        // 键盘控制
+        document.addEventListener('keydown', (event) => {
+            const hookA = gameState.hooks.playerA;
+            const hookB = gameState.hooks.playerB;
+
+            if (event.key === 's' || event.key === 'S') {
+                if (hookA.swinging && gameState.mode !== null) {
+                    hookA.swinging = false;
+                    hookA.extending = true;
+                }
+            }
+
+            if (event.key === 'ArrowDown' && gameState.mode === 'double') {
+                event.preventDefault();
+                if (hookB.swinging) {
+                    hookB.swinging = false;
+                    hookB.extending = true;
+                }
+            }
+        });
+    </script>
+</body>
+</html>
