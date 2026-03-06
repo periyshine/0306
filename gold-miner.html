@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>黄金矿工</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        #gameContainer {
+            position: relative;
+            width: 1200px;
+            height: 700px;
+            background: #f3d03e;
+            border-radius: 10px;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.5);
+            overflow: hidden;
+        }
+
+        #startScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #f5af19 0%, #f12711 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        #startScreen h1 {
+            font-size: 72px;
+            color: #fff;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+            margin-bottom: 20px;
+            animation: bounce 1s ease infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        #startScreen p {
+            font-size: 24px;
+            color: #fff;
+            margin-bottom: 50px;
+        }
+
+        .modeButton {
+            padding: 20px 50px;
+            font-size: 28px;
+            margin: 15px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
+
+        .modeButton:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+        }
+
+        #singlePlayerBtn {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);
+            color: #fff;
+        }
+
+        #doublePlayerBtn {
+            background: linear-gradient(135deg, #36d1dc 0%, #5b86e5 100%);
+            color: #fff;
+        }
+
+        #gameCanvas {
+            display: block;
+            background: linear-gradient(180deg, #87ceeb 0%, #87ceeb 15%, #8b4513 15%, #654321 100%);
+        }
+
+        #hud {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 20px;
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            font-weight: bold;
+        }
+
+        .playerScore {
+            background: rgba(0,0,0,0.6);
+            padding: 10px 20px;
+            border-radius: 10px;
+        }
+
+        .controls {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            right: 10px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            color: #fff;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+        }
+
+        .controlInfo {
+            background: rgba(0,0,0,0.6);
+            padding: 8px 15px;
+            border-radius: 8px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        #victoryScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+        }
+
+        #victoryScreen h2 {
+            font-size: 60px;
+            color: #ffd700;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+            margin-bottom: 30px;
+            animation: glow 1s ease infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { text-shadow: 0 0 20px #ffd700, 0 0 30px #ffd700; }
+            50% { text-shadow: 0 0 40px #ffd700, 0 0 50px #ffd700; }
+        }
+
+        #victoryScreen .score {
+            font-size: 30px;
+            color: #fff;
+            margin-bottom: 40px;
+        }
+
+        #victoryScreen button {
+            padding: 15px 40px;
+            font-size: 24px;
+            background: linear-gradient(135deg, #f5af19 0%, #f12711 100%);
+            color: #fff;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
+
+        #victoryScreen button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="startScreen">
+            <h1>⛏️ 黄金矿工 ⛏️</h1>
+            <p>选择游戏模式</p>
+            <button id="singlePlayerBtn" class="modeButton">单人模式</button>
+            <button id="doublePlayerBtn" class="modeButton">双人模式</button>
+        </div>
+
+        <div id="hud" class="hidden">
+            <div class="playerScore" id="playerA">玩家A: 0分</div>
+            <div class="playerScore" id="target">目标: 800分</div>
+            <div class="playerScore" id="playerB">玩家B: 0分</div>
+        </div>
+
+        <canvas id="gameCanvas"></canvas>
+
+        <div id="controls" class="controls hidden">
+            <div class="controlInfo" id="playerAControl">玩家A: 按 S 键下放钩子</div>
+            <div class="controlInfo hidden" id="playerBControl">玩家B: 按 ↓ 键下放钩子</div>
+        </div>
+
+        <div id="victoryScreen" class="hidden">
+            <h2>🎉 胜利! 🎉</h2>
+            <div class="score" id="finalScore">最终得分: 0</div>
+            <button id="restartBtn">重新开始</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 1200;
+        canvas.height = 700;
+
+        // Game state
+        let gameMode = 'single';
+        let gameRunning = false;
+        let victoryScore = 800;
+
+        // Player class
+        class Player {
+            constructor(x, isPlayerA) {
+                this.x = x;
+                this.y = 100;
+                this.isPlayerA = isPlayerA;
+                this.score = 0;
+                this.hookAngle = 0;
+                this.hookDirection = 1;
+                this.hookSpeed = 0;
+                this.hookLength = 50;
+                this.hookState = 'swinging'; // swinging, extending, retracting
+                this.caughtItem = null;
+                this.hookSpeedExtending = 8;
+                this.baseRetractSpeed = 8;
+            }
+
+            update() {
+                if (this.hookState === 'swinging') {
+                    // Swing hook back and forth
+                    this.hookAngle += this.hookDirection * 0.03;
+                    if (this.hookAngle > Math.PI / 2.5 || this.hookAngle < -Math.PI / 2.5) {
+                        this.hookDirection *= -1;
+                    }
+                } else if (this.hookState === 'extending') {
+                    this.hookLength += this.hookSpeedExtending;
+
+                    // Check if hook is out of bounds
+                    const hookX = this.x + Math.sin(this.hookAngle) * this.hookLength;
+                    const hookY = this.y + Math.cos(this.hookAngle) * this.hookLength;
+
+                    if (hookX < 0 || hookX > canvas.width || hookY > canvas.height) {
+                        this.hookState = 'retracting';
+                    }
+
+                    // Check collision with items
+                    for (let item of game.items) {
+                        if (!item.caught && this.checkCollision(item)) {
+                            item.caught = true;
+                            this.caughtItem = item;
+
+                            if (item.type === 'bomb') {
+                                // Explosion effect
+                                game.explosions.push({
+                                    x: item.x,
+                                    y: item.y,
+                                    radius: 10,
+                                    maxRadius: 100,
+                                    alpha: 1
+                                });
+                                this.hookState = 'retracting';
+                                this.hookSpeed = this.baseRetractSpeed * 2;
+                            } else {
+                                this.hookState = 'retracting';
+                                this.hookSpeed = this.baseRetractSpeed / item.weight;
+                            }
+                            break;
+                        }
+                    }
+                } else if (this.hookState === 'retracting') {
+                    this.hookLength -= this.hookSpeed;
+
+                    if (this.hookLength <= 50) {
+                        this.hookLength = 50;
+                        this.hookState = 'swinging';
+
+                        if (this.caughtItem) {
+                            this.score += this.caughtItem.value;
+                            game.removeItem(this.caughtItem);
+                            this.caughtItem = null;
+
+                            // Check win condition
+                            if (this.score >= victoryScore) {
+                                game.showVictory(this);
+                            }
+                        }
+
+                        this.updateHUD();
+                    }
+                }
+            }
+
+            checkCollision(item) {
+                const hookX = this.x + Math.sin(this.hookAngle) * this.hookLength;
+                const hookY = this.y + Math.cos(this.hookAngle) * this.hookLength;
+                const dist = Math.sqrt(Math.pow(hookX - item.x, 2) + Math.pow(hookY - item.y, 2));
+                return dist < item.size;
+            }
+
+            shoot() {
+                if (this.hookState === 'swinging') {
+                    this.hookState = 'extending';
+                }
+            }
+
+            draw(ctx) {
+                // Draw player
+                ctx.fillStyle = this.isPlayerA ? '#ff6b6b' : '#4ecdc4';
+                ctx.fillRect(this.x - 20, this.y - 30, 40, 30);
+
+                // Draw hook line
+                const hookX = this.x + Math.sin(this.hookAngle) * this.hookLength;
+                const hookY = this.y + Math.cos(this.hookAngle) * this.hookLength;
+
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y);
+                ctx.lineTo(hookX, hookY);
+                ctx.stroke();
+
+                // Draw hook
+                ctx.fillStyle = '#666';
+                ctx.beginPath();
+                ctx.arc(hookX, hookY, 8, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Draw hook claws
+                ctx.strokeStyle = '#666';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.moveTo(hookX - 10, hookY + 5);
+                ctx.lineTo(hookX, hookY);
+                ctx.lineTo(hookX + 10, hookY + 5);
+                ctx.stroke();
+            }
+
+            updateHUD() {
+                if (this.isPlayerA) {
+                    document.getElementById('playerA').textContent = `玩家A: ${this.score}分`;
+                } else {
+                    document.getElementById('playerB').textContent = `玩家B: ${this.score}分`;
+                }
+            }
+        }
+
+        // Item class
+        class Item {
+            constructor(x, y, type, size, value, weight) {
+                this.x = x;
+                this.y = y;
+                this.type = type;
+                this.size = size;
+                this.value = value;
+                this.weight = weight;
+                this.caught = false;
+
+                // For moving items (pig)
+                this.direction = Math.random() > 0.5 ? 1 : -1;
+                this.speed = 1;
+            }
+
+            update() {
+                if (this.type === 'pig' && !this.caught) {
+                    this.x += this.direction * this.speed;
+
+                    // Bounce off walls
+                    if (this.x < this.size || this.x > canvas.width - this.size) {
+                        this.direction *= -1;
+                    }
+                }
+            }
+
+            draw(ctx) {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+
+                switch (this.type) {
+                    case 'gold':
+                        this.drawGold(ctx);
+                        break;
+                    case 'stone':
+                        this.drawStone(ctx);
+                        break;
+                    case 'diamond':
+                        this.drawDiamond(ctx);
+                        break;
+                    case 'bomb':
+                        this.drawBomb(ctx);
+                        break;
+                    case 'pig':
+                        this.drawPig(ctx);
+                        break;
+                }
+
+                ctx.restore();
+            }
+
+            drawGold(ctx) {
+                const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, this.size);
+                gradient.addColorStop(0, '#ffd700');
+                gradient.addColorStop(1, '#daa520');
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.ellipse(0, 0, this.size, this.size * 0.8, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Shine effect
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.beginPath();
+                ctx.ellipse(-this.size * 0.3, -this.size * 0.2, this.size * 0.3, this.size * 0.2, -0.5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            drawStone(ctx) {
+                ctx.fillStyle = '#888';
+                ctx.beginPath();
+                ctx.moveTo(-this.size, 0);
+                ctx.lineTo(-this.size * 0.5, -this.size * 0.8);
+                ctx.lineTo(this.size * 0.5, -this.size * 0.7);
+                ctx.lineTo(this.size, 0);
+                ctx.lineTo(this.size * 0.6, this.size * 0.7);
+                ctx.lineTo(-this.size * 0.4, this.size * 0.8);
+                ctx.closePath();
+                ctx.fill();
+
+                // Texture
+                ctx.fillStyle = '#666';
+                ctx.beginPath();
+                ctx.arc(-this.size * 0.3, -this.size * 0.2, this.size * 0.15, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            drawDiamond(ctx) {
+                ctx.fillStyle = '#00ffff';
+                ctx.beginPath();
+                ctx.moveTo(0, -this.size);
+                ctx.lineTo(this.size, 0);
+                ctx.lineTo(0, this.size);
+                ctx.lineTo(-this.size, 0);
+                ctx.closePath();
+                ctx.fill();
+
+                // Shine lines
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(0, -this.size);
+                ctx.lineTo(0, this.size);
+                ctx.moveTo(-this.size, 0);
+                ctx.lineTo(this.size, 0);
+                ctx.stroke();
+            }
+
+            drawBomb(ctx) {
+                ctx.fillStyle = '#333';
+                ctx.beginPath();
+                ctx.arc(0, 0, this.size, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Fuse
+                ctx.strokeStyle = '#8B4513';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(0, -this.size);
+                ctx.lineTo(0, -this.size - 10);
+                ctx.stroke();
+
+                // Spark
+                ctx.fillStyle = '#ff6600';
+                ctx.beginPath();
+                ctx.arc(0, -this.size - 12, 4, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Skull
+                ctx.fillStyle = '#fff';
+                ctx.font = `${this.size}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('☠️', 0, 0);
+            }
+
+            drawPig(ctx) {
+                ctx.fillStyle = '#ffb6c1';
+                ctx.beginPath();
+                ctx.ellipse(0, 0, this.size, this.size * 0.7, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Snout
+                ctx.fillStyle = '#ff91a4';
+                ctx.beginPath();
+                ctx.ellipse(0, this.size * 0.2, this.size * 0.4, this.size * 0.3, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Eyes
+                ctx.fillStyle = '#000';
+                ctx.beginPath();
+                ctx.arc(-this.size * 0.3, -this.size * 0.1, this.size * 0.1, 0, Math.PI * 2);
+                ctx.arc(this.size * 0.3, -this.size * 0.1, this.size * 0.1, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Ears
+                ctx.fillStyle = '#ffb6c1';
+                ctx.beginPath();
+                ctx.ellipse(-this.size * 0.8, -this.size * 0.5, this.size * 0.25, this.size * 0.15, -0.5, 0, Math.PI * 2);
+                ctx.ellipse(this.size * 0.8, -this.size * 0.5, this.size * 0.25, this.size * 0.15, 0.5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // Game class
+        class Game {
+            constructor() {
+                this.players = [];
+                this.items = [];
+                this.explosions = [];
+            }
+
+            init(mode) {
+                gameMode = mode;
+                this.players = [];
+                this.items = [];
+                this.explosions = [];
+
+                if (mode === 'single') {
+                    this.players.push(new Player(canvas.width / 2, true));
+                    document.getElementById('playerB').classList.add('hidden');
+                    document.getElementById('playerBControl').classList.add('hidden');
+                } else {
+                    this.players.push(new Player(canvas.width * 0.3, true));
+                    this.players.push(new Player(canvas.width * 0.7, false));
+                    document.getElementById('playerB').classList.remove('hidden');
+                    document.getElementById('playerBControl').classList.remove('hidden');
+                }
+
+                this.generateItems();
+                this.updateHUD();
+            }
+
+            generateItems() {
+                // Create diamonds (at least 3, value 800, very light)
+                for (let i = 0; i < 3; i++) {
+                    let x, y, valid;
+                    do {
+                        valid = true;
+                        x = Math.random() * (canvas.width - 200) + 100;
+                        y = Math.random() * (canvas.height - 400) + 250;
+
+                        // Check overlap with existing items
+                        for (let item of this.items) {
+                            const dist = Math.sqrt(Math.pow(x - item.x, 2) + Math.pow(y - item.y, 2));
+                            if (dist < 60) {
+                                valid = false;
+                                break;
+                            }
+                        }
+                    } while (!valid);
+
+                    this.items.push(new Item(x, y, 'diamond', 15, 800, 0.5));
+                }
+
+                // Create gold nuggets of various sizes
+                const goldSizes = [
+                    { size: 25, value: 100, weight: 1.5 },
+                    { size: 35, value: 250, weight: 2.5 },
+                    { size: 45, value: 500, weight: 3.5 }
+                ];
+
+                for (let i = 0; i < 6; i++) {
+                    const sizeInfo = goldSizes[Math.floor(Math.random() * goldSizes.length)];
+                    let x, y, valid;
+                    do {
+                        valid = true;
+                        x = Math.random() * (canvas.width - 200) + 100;
+                        y = Math.random() * (canvas.height - 400) + 250;
+
+                        for (let item of this.items) {
+                            const dist = Math.sqrt(Math.pow(x - item.x, 2) + Math.pow(y - item.y, 2));
+                            if (dist < sizeInfo.size * 2 + 20) {
+                                valid = false;
+                                break;
+                            }
+                        }
+                    } while (!valid);
+
+                    this.items.push(new Item(x, y, 'gold', sizeInfo.size, sizeInfo.value, sizeInfo.weight));
+                }
+
+                // Create stones of various sizes
+                const stoneSizes = [
+                    { size: 30, value: 10, weight: 4 },
+                    { size: 45, value: 20, weight: 6 },
+                    { size: 60, value: 30, weight: 8 }
+                ];
+
+                for (let i = 0; i < 5; i++) {
+                    const sizeInfo = stoneSizes[Math.floor(Math.random() * stoneSizes.length)];
+                    let x, y, valid;
+                    do {
+                        valid = true;
+                        x = Math.random() * (canvas.width - 200) + 100;
+                        y = Math.random() * (canvas.height - 400) + 250;
+
+                        for (let item of this.items) {
+                            const dist = Math.sqrt(Math.pow(x - item.x, 2) + Math.pow(y - item.y, 2));
+                            if (dist < sizeInfo.size * 2 + 20) {
+                                valid = false;
+                                break;
+                            }
+                        }
+                    } while (!valid);
+
+                    this.items.push(new Item(x, y, 'stone', sizeInfo.size, sizeInfo.value, sizeInfo.weight));
+                }
+
+                // Create bombs
+                for (let i = 0; i < 3; i++) {
+                    let x, y, valid;
+                    do {
+                        valid = true;
+                        x = Math.random() * (canvas.width - 200) + 100;
+                        y = Math.random() * (canvas.height - 400) + 250;
+
+                        for (let item of this.items) {
+                            const dist = Math.sqrt(Math.pow(x - item.x, 2) + Math.pow(y - item.y, 2));
+                            if (dist < 50) {
+                                valid = false;
+                                break;
+                            }
+                        }
+                    } while (!valid);
+
+                    this.items.push(new Item(x, y, 'bomb', 20, 2, 1));
+                }
+
+                // Create pigs
+                for (let i = 0; i < 3; i++) {
+                    let x, y, valid;
+                    do {
+                        valid = true;
+                        x = Math.random() * (canvas.width - 300) + 150;
+                        y = Math.random() * (canvas.height - 500) + 350;
+
+                        for (let item of this.items) {
+                            const dist = Math.sqrt(Math.pow(x - item.x, 2) + Math.pow(y - item.y, 2));
+                            if (dist < 50) {
+                                valid = false;
+                                break;
+                            }
+                        }
+                    } while (!valid);
+
+                    this.items.push(new Item(x, y, 'pig', 25, 3, 0.8));
+                }
+            }
+
+            removeItem(item) {
+                const index = this.items.indexOf(item);
+                if (index > -1) {
+                    this.items.splice(index, 1);
+                }
+            }
+
+            showVictory(player) {
+                gameRunning = false;
+                const victoryScreen = document.getElementById('victoryScreen');
+                const finalScore = document.getElementById('finalScore');
+                const playerName = player.isPlayerA ? '玩家A' : '玩家B';
+                finalScore.textContent = `${playerName} 最终得分: ${player.score}`;
+                victoryScreen.classList.remove('hidden');
+            }
+
+            updateHUD() {
+                document.getElementById('target').textContent = `目标: ${victoryScore}分`;
+                for (let player of this.players) {
+                    player.updateHUD();
+                }
+            }
+
+            update() {
+                if (!gameRunning) return;
+
+                // Update players
+                for (let player of this.players) {
+                    player.update();
+                }
+
+                // Update items
+                for (let item of this.items) {
+                    item.update();
+                }
+
+                // Update explosions
+                for (let i = this.explosions.length - 1; i >= 0; i--) {
+                    const explosion = this.explosions[i];
+                    explosion.radius += 10;
+                    explosion.alpha -= 0.05;
+
+                    if (explosion.alpha <= 0) {
+                        this.explosions.splice(i, 1);
+                    }
+                }
+            }
+
+            draw() {
+                // Clear canvas
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // Draw sky
+                const skyGradient = ctx.createLinearGradient(0, 0, 0, 105);
+                skyGradient.addColorStop(0, '#87ceeb');
+                skyGradient.addColorStop(1, '#4682b4');
+                ctx.fillStyle = skyGradient;
+                ctx.fillRect(0, 0, canvas.width, 105);
+
+                // Draw ground
+                const groundGradient = ctx.createLinearGradient(0, 105, 0, canvas.height);
+                groundGradient.addColorStop(0, '#8b4513');
+                groundGradient.addColorStop(0.2, '#654321');
+                groundGradient.addColorStop(1, '#3d2914');
+                ctx.fillStyle = groundGradient;
+                ctx.fillRect(0, 105, canvas.width, canvas.height - 105);
+
+                // Draw surface line
+                ctx.strokeStyle = '#228b22';
+                ctx.lineWidth = 5;
+                ctx.beginPath();
+                ctx.moveTo(0, 105);
+                ctx.lineTo(canvas.width, 105);
+                ctx.stroke();
+
+                // Draw grass
+                ctx.fillStyle = '#32cd32';
+                for (let i = 0; i < canvas.width; i += 15) {
+                    ctx.beginPath();
+                    ctx.moveTo(i, 105);
+                    ctx.lineTo(i + 5, 95);
+                    ctx.lineTo(i + 10, 105);
+                    ctx.fill();
+                }
+
+                // Draw items
+                for (let item of this.items) {
+                    item.draw(ctx);
+                }
+
+                // Draw players
+                for (let player of this.players) {
+                    player.draw(ctx);
+
+                    // Draw caught item on hook
+                    if (player.caughtItem) {
+                        const item = player.caughtItem;
+                        const hookX = player.x + Math.sin(player.hookAngle) * player.hookLength;
+                        const hookY = player.y + Math.cos(player.hookAngle) * player.hookLength;
+
+                        ctx.save();
+                        ctx.translate(hookX, hookY);
+                        item.draw(ctx);
+                        ctx.restore();
+                    }
+                }
+
+                // Draw explosions
+                for (let explosion of this.explosions) {
+                    ctx.fillStyle = `rgba(255, ${100 + Math.random() * 100}, 0, ${explosion.alpha})`;
+                    ctx.beginPath();
+                    ctx.arc(explosion.x, explosion.y, explosion.radius, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.fillStyle = `rgba(255, 255, 0, ${explosion.alpha})`;
+                    ctx.beginPath();
+                    ctx.arc(explosion.x, explosion.y, explosion.radius * 0.6, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            gameLoop() {
+                this.update();
+                this.draw();
+                requestAnimationFrame(() => this.gameLoop());
+            }
+        }
+
+        // Initialize game
+        const game = new Game();
+
+        // Event listeners
+        document.getElementById('singlePlayerBtn').addEventListener('click', () => {
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('hud').classList.remove('hidden');
+            document.getElementById('controls').classList.remove('hidden');
+            game.init('single');
+            gameRunning = true;
+            game.gameLoop();
+        });
+
+        document.getElementById('doublePlayerBtn').addEventListener('click', () => {
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('hud').classList.remove('hidden');
+            document.getElementById('controls').classList.remove('hidden');
+            game.init('double');
+            gameRunning = true;
+            game.gameLoop();
+        });
+
+        document.getElementById('restartBtn').addEventListener('click', () => {
+            document.getElementById('victoryScreen').classList.add('hidden');
+            document.getElementById('startScreen').classList.remove('hidden');
+            gameRunning = false;
+        });
+
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            if (!gameRunning) return;
+
+            const key = e.key.toLowerCase();
+
+            // Player A uses S key
+            if (key === 's' && game.players[0]) {
+                game.players[0].shoot();
+            }
+
+            // Player B uses down arrow (in double player mode)
+            if (key === 'arrowdown' && gameMode === 'double' && game.players[1]) {
+                game.players[1].shoot();
+                e.preventDefault();
+            }
+        });
+    </script>
+</body>
+</html>
